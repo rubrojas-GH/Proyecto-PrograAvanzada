@@ -1,0 +1,115 @@
+﻿@{
+    ViewBag.Title = "Panel de Administración";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Asegurarse que esta ruta sea correcta
+}
+
+<h2>@ViewBag.Title</h2>
+<p>Bienvenido al Panel Central de Administración. Aquí puede monitorear las métricas clave y acceder a la gestión completa del sistema.</p>
+
+<hr />
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Ventas Totales</div>
+            <div class="panel-body text-center">
+                <h3 class="text-success">@ViewBag.TotalVentas</h3>
+                <p>Ventas del Último Mes: @ViewBag.VentasUltimoMes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="panel panel-warning">
+            <div class="panel-heading">Moderación Pendiente</div>
+            <div class="panel-body text-center">
+                <h3 class="text-warning">@ViewBag.ReseñasPendientesCount</h3>
+                <p>Reseñas por Aprobar</p>
+                <p>@Html.ActionLink("Ir a Moderación", "Moderation", "Reseña", null, new { @class = "btn btn-xs btn-warning" })</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="panel panel-danger">
+            <div class="panel-heading">Alerta de Stock</div>
+            <div class="panel-body text-center">
+                <h3 class="text-danger">@ViewBag.LowStockCount</h3>
+                <p>Productos con Stock bajo (<= 5)</p>
+                <p>@Html.ActionLink("Ver Catálogo", "Index", "Producto", new { area = "" }, new { @class = "btn btn-xs btn-danger" })</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="panel panel-info">
+            <div class="panel-heading">Usuarios</div>
+            <div class="panel-body text-center">
+                <h3 class="text-info">@ViewBag.TotalUsuarios</h3>
+                <p>Administradores: @ViewBag.TotalAdministradores</p>
+                <p>Asociados: @ViewBag.TotalAsociados</p>
+                <p>@Html.ActionLink("Administrar Usuarios", "Index", "User", null, new { @class = "btn btn-xs btn-info" })</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6">
+        <h4><i class="glyphicon glyphicon-list-alt"></i> Últimas 5 Órdenes</h4>
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID Orden</th>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var orden in ViewBag.RecentOrders)
+                {
+                    <tr>
+                        <td>@orden.idOrden</td>
+                        <td>@(orden.Usuario?.nombre ?? "N/A")</td> @* Asume que la orden tiene el objeto Usuario cargado *@
+                        <td>@orden.fecha.ToShortDateString()</td>
+                        <td>@orden.total.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @Html.ActionLink("Ver todas las órdenes", "OrdersList", "Dashboard", null, new { @class = "btn btn-default btn-xs" })
+    </div>
+
+    <div class="col-md-6">
+        <h4><i class="glyphicon glyphicon-star-empty"></i> Reseñas Pendientes Recientes</h4>
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Usuario</th>
+                    <th>Contenido</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reseña in ViewBag.ReseñasPendientes)
+                {
+                    <tr>
+                        <td>@(reseña.Producto?.nombre ?? "N/A")</td> @* Asume que la reseña tiene el objeto Producto cargado *@
+                        <td>@(reseña.Usuario?.nombre ?? "N/A")</td>
+                        <td>@(reseña.contenido.Length > 30 ? reseña.contenido.Substring(0, 30) + "..." : reseña.contenido)</td>
+                        <td>
+                            @* Enviar a la vista de moderación detallada o usar un formulario para aprobar/rechazar *@
+                            @Html.ActionLink("Moderar", "Moderation", "Reseña", null, new { @class = "btn btn-xs btn-primary" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

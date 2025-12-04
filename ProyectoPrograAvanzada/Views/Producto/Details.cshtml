@@ -1,0 +1,168 @@
+﻿@using ProyectoPrograAvanzada.Models
+@model ProyectoPrograAvanzada.Models.Producto
+
+@{
+    ViewBag.Title = Model.nombreProducto;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        @* Mensajes de confirmación (ej. reseña enviada, producto añadido) *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+    </div>
+</div>
+
+<div class="row">
+
+    @* ============================================== *@
+    @* COLUMNA DE IMÁGENES              *@
+    @* ============================================== *@
+    <div class="col-md-6">
+        <h2 class="mb-4">@Model.nombreProducto</h2>
+
+        @if (Model.Imagenes != null && Model.Imagenes.Any())
+        {
+            // Usar la primera imagen como principal
+            string mainImageUrl = Model.Imagenes.First().urlImagen;
+            <img src="@mainImageUrl" alt="@Model.nombreProducto" class="img-responsive img-thumbnail" style="max-height: 400px; width: auto; margin-bottom: 20px;" />
+
+            // Aquí se podrían listar más imágenes o un carrusel
+        }
+        else
+        {
+            <img src="/Content/images/placeholder.jpg" alt="No Image" class="img-responsive img-thumbnail" style="max-height: 400px; width: auto; margin-bottom: 20px;" />
+        }
+    </div>
+
+    @* ============================================== *@
+    @* COLUMNA DE INFORMACIÓN Y COMPRA     *@
+    @* ============================================== *@
+    <div class="col-md-6">
+
+        <h3 class="text-primary">@Model.precioProducto.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h3>
+        <hr />
+
+        <dl class="dl-horizontal">
+            <dt>Descripción</dt>
+            <dd>@(string.IsNullOrEmpty(Model.descripcion) ? "Sin descripción" : Model.descripcion)</dd>
+
+            <dt>Disponibilidad</dt>
+            <dd>
+                @if (Model.estadoProducto == true)
+                {
+                    <span class="label label-success">Activo</span>
+                }
+                else
+                {
+                    <span class="label label-default">Inactivo</span>
+                }
+            </dd>
+
+            <dt>Stock Actual</dt>
+            <dd>
+                @if (Model.stock > 0)
+                {
+                    <strong class="text-success">@Model.stock unidades</strong>
+                }
+                else
+                {
+                    <strong class="text-danger">Agotado</strong>
+                }
+            </dd>
+        </dl>
+
+        <hr />
+
+        @* Lógica para Añadir al Carrito (RF3) *@
+        @if (Model.stock > 0 && User.IsInRole("Asociado"))
+        {
+            <h4>Añadir al Carrito</h4>
+            using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "form-inline" }))
+            {
+                @Html.Hidden("idProducto", Model.idProducto)
+
+                <div class="form-group">
+                    <label for="cantidad">Cantidad:</label>
+                    <input type="number" name="cantidad" value="1" min="1" max="@Model.stock" class="form-control" style="width: 80px; margin-right: 10px;" required />
+                </div>
+
+                <button type="submit" class="btn btn-lg btn-success">
+                    <i class="glyphicon glyphicon-shopping-cart"></i> Comprar
+                </button>
+            }
+        }
+        else if (Model.stock > 0)
+        {
+            <p class="text-info">Inicie sesión como Asociado para comprar este producto.</p>
+        }
+        else
+        {
+            <p class="text-danger">Este producto se encuentra agotado temporalmente.</p>
+        }
+
+    </div>
+</div>
+
+<hr />
+
+@* ============================================== *@
+@* SECCIÓN DE RESEÑAS (RF4)         *@
+@* ============================================== *@
+<div class="row">
+    <div class="col-md-12">
+        <h3>
+            Reseñas de Usuarios
+            @if (User.IsInRole("Asociado"))
+            {
+                // Enlace para crear una reseña (solo Asociados)
+                @Html.ActionLink("Escribir una Reseña", "Create", "Reseña", new { id = Model.idProducto }, new { @class = "btn btn-xs btn-primary pull-right" })
+            }
+        </h3>
+
+        <hr />
+
+        @{
+            // Filtrar y mostrar solo las reseñas aprobadas (RF4)
+            var reseñasAprobadas = Model.Reseñas?.Where(r => r.estado == "Aprobada").ToList() ?? new List<Reseña>();
+        }
+
+        @if (!reseñasAprobadas.Any())
+        {
+            <div class="alert alert-info">
+                Aún no hay reseñas aprobadas para este producto. ¡Sé el primero en dejar una!
+            </div>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var reseña in reseñasAprobadas.OrderByDescending(r => r.fecha))
+                {
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <strong>@reseña.Usuario.nombre</strong> @* Asume que el objeto Usuario está cargado *@
+                                <small class="pull-right text-muted">@reseña.fecha.ToShortDateString()</small>
+                                <p>@reseña.contenido</p>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+
+    </div>
+</div>
+
+<hr />
+
+@* Enlace para volver al catálogo *@
+<p>
+    @Html.ActionLink("← Volver al Catálogo", "Index", "Producto")
+</p>

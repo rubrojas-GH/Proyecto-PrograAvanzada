@@ -1,0 +1,68 @@
+﻿@model ProyectoPrograAvanzada.Controllers.LoginViewModel
+
+@{
+    ViewBag.Title = "Iniciar Sesión";
+    // Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@ViewBag.Title</h2>
+<div class="row">
+    <div class="col-md-8">
+        <section id="loginForm">
+            @using (Html.BeginForm("Login", "User", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+            {
+                @Html.AntiForgeryToken()
+                <h4>Use una cuenta registrada para iniciar sesión.</h4>
+                <hr />
+
+                @* Muestra el error general de credenciales no válidas *@
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                @* Campo Email *@
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Email, new { @class = "col-md-2 control-label" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                @* Campo Contraseña *@
+                <div class="form-group">
+                    @Html.LabelFor(m => m.Password, new { @class = "col-md-2 control-label" })
+                    <div class="col-md-10">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                @* Campo Recordarme *@
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <div class="checkbox">
+                            @Html.CheckBoxFor(m => m.RememberMe)
+                            @Html.LabelFor(m => m.RememberMe)
+                        </div>
+                    </div>
+                </div>
+
+                @* Botón de Enviar *@
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Iniciar Sesión" class="btn btn-default" />
+                    </div>
+                </div>
+
+                @* Link para registro *@
+                <p>
+                    @Html.ActionLink("¿No tienes una cuenta? Regístrate aquí.", "Register", "User")
+                </p>
+            }
+        </section>
+    </div>
+    @* Si hubiera inicio de sesión con redes sociales, iría aquí *@
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

@@ -1,0 +1,80 @@
+﻿@using ProyectoPrograAvanzada.Models
+@model IEnumerable<Producto>
+
+@{
+    ViewBag.Title = "Administración de Productos";
+}
+
+<h2>@ViewBag.Title</h2>
+<p class="lead">Gestión de la información y el inventario del catálogo.</p>
+
+<p>
+    @Html.ActionLink("Crear Nuevo Producto", "Create", null, new { @class = "btn btn-primary" })
+</p>
+
+@* Mostrar mensajes de éxito o error después de un CRUD *@
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.idProducto)</th>
+            <th>@Html.DisplayNameFor(model => model.nombreProducto)</th>
+            <th>@Html.DisplayNameFor(model => model.precioProducto)</th>
+            <th>@Html.DisplayNameFor(model => model.stock)</th>
+            <th>@Html.DisplayNameFor(model => model.estadoProducto)</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            // Resaltar productos inactivos o con bajo stock para el administrador
+            string rowClass = "";
+            if (item.estadoProducto == false)
+            {
+                rowClass = "danger"; // Inactivo: Rojo
+            }
+            else if (item.stock <= 5)
+            {
+                rowClass = "warning"; // Stock bajo: Amarillo
+            }
+
+            <tr class="@rowClass">
+                <td>@Html.DisplayFor(modelItem => item.idProducto)</td>
+                <td>@Html.DisplayFor(modelItem => item.nombreProducto)</td>
+                <td>@item.precioProducto.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td> @* Formato de moneda *@
+                <td>@Html.DisplayFor(modelItem => item.stock)</td>
+                <td>
+                    @if (item.estadoProducto == true)
+                    {
+                        <span class="label label-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="label label-default">Inactivo</span>
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Editar", "Edit", new { id = item.idProducto }, new { @class = "btn btn-xs btn-default" }) |
+                    @Html.ActionLink("Detalles", "Details", new { id = item.idProducto }, new { @class = "btn btn-xs btn-default" }) |
+                    @* Usamos un formulario para la acción de Eliminar por seguridad *@
+                    @using (Html.BeginForm("Delete", "Producto", new { id = item.idProducto }, FormMethod.Post, new { style = "display:inline;" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('¿Está seguro de que desea eliminar este producto? (Esta acción es permanente)');">
+                            Eliminar
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

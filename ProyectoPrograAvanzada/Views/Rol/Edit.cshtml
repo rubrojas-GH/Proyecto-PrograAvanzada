@@ -1,0 +1,46 @@
+﻿@model ProyectoPrograAvanzada.Models.Rol
+
+@{
+    ViewBag.Title = "Editar Rol: " + Model.nombreRol;
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Asume tu layout principal
+}
+
+<div class="container mt-4">
+    <h2 class="display-6">✏️ Editar Rol: @Model.nombreRol</h2>
+    <hr />
+
+    @using (Html.BeginForm("Edit", "Rol", FormMethod.Post, new { @class = "row g-3" }))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.HiddenFor(model => model.idRol)
+
+        <div class="col-12">
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group">
+                @Html.LabelFor(model => model.nombreRol, new { @class = "form-label" })
+
+                @Html.EditorFor(model => model.nombreRol, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej: Soporte, Gerente de Ventas" } })
+
+                @Html.ValidationMessageFor(model => model.nombreRol, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <div class="form-group">
+                <button type="submit" class="btn btn-warning me-2">
+                    Actualizar Rol
+                </button>
+
+                @Html.ActionLink("↩️ Volver a la Lista", "Index", null, new { @class = "btn btn-outline-secondary" })
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
