@@ -1,0 +1,33 @@
+﻿@{
+    ViewBag.Title = "Acerca de Nosotros";
+}
+<main aria-labelledby="title">
+    <div class="p-4 p-md-5 mb-4 text-white rounded bg-dark">
+        <div class="col-md-12 px-0">
+            <h1 class="display-4 fst-italic">@ViewBag.Title</h1>
+            <p class="lead my-3">Somos tu destino principal para la última tecnología, impulsando la innovación en cada producto.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <h3>Nuestra Misión 💡</h3>
+            <p>Conectar a nuestros clientes con las herramientas tecnológicas más avanzadas del mercado, garantizando calidad, precios justos y una experiencia de compra excepcional.</p>
+
+            <h3>Nuestra Historia 🗓️</h3>
+            <p>Fundada en el corazón de la innovación, MvcTienda nació de la pasión por la electrónica y el deseo de hacer la tecnología de punta accesible para todos. Desde nuestros humildes comienzos, nos hemos expandido hasta convertirnos en un referente de confianza y calidad.</p>
+        </div>
+
+        <div class="col-lg-6">
+            <h3>Valores Clave ⭐</h3>
+            <ul class="list-group">
+                <li class="list-group-item"><strong>Innovación:</strong> Siempre a la vanguardia.</li>
+                <li class="list-group-item"><strong>Confianza:</strong> Transparencia en precios y productos.</li>
+                <li class="list-group-item"><strong>Compromiso:</strong> Satisfacción total del cliente y soporte continuo.</li>
+            </ul>
+            <div class="mt-4">
+                <a href="@Url.Action("Index", "Producto")" class="btn btn-primary btn-lg">Explora la Tecnología Hoy</a>
+            </div>
+        </div>
+    </div>
+</main>

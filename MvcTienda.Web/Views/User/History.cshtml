@@ -1,0 +1,80 @@
+﻿@using MvcTienda.Aplicacion.Ordenes
+@using MvcTienda.Domain.Entities
+@model IEnumerable<OrdenDto>
+
+@{
+    ViewBag.Title = "Historial de Compras";
+    // Formateador de moneda (ajusta la cultura según sea necesario)
+    var currencyCulture = new System.Globalization.CultureInfo("es-CR");
+}
+
+<main aria-labelledby="title">
+    <h2 id="title">@ViewBag.Title</h2>
+    <p class="lead">Consulta todas las órdenes que has realizado.</p>
+    <hr />
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <i class="glyphicon glyphicon-info-sign"></i> Aún no has realizado ninguna compra.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>ID Orden</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Detalles</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var orden in Model.OrderByDescending(o => o.Fecha)) // 🚨 AJUSTE: Usar orden.Fecha
+                {
+                    <tr>
+                        <td>#@orden.Id</td>
+                        <td>@orden.Fecha.ToShortDateString()</td>
+                        <td><strong class="text-success">@orden.Total.ToString("C", currencyCulture)</strong></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="collapse" data-bs-target="#details-@orden.Id" aria-expanded="false" aria-controls="details-@orden.Id">
+                                Ver Productos (@orden.Items.Count() productos)
+                            </button>
+                        </td>
+                    </tr>
+
+                    @* Fila de Detalles Oculta (Colapsable) *@
+                    <tr class="collapse" id="details-@orden.Id">
+                        // 🚨 AJUSTE: Usar orden.Id
+                        <td colspan="4">
+                            <table class="table table-condensed" style="background-color: #f9f9f9;">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio de Compra</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detalle in orden.Items)
+                                    {
+                                        <tr>
+                                            <td>@(detalle.NombreProducto ?? "Producto Eliminado")</td> // 🚨 AJUSTE: Usar detalle.NombreProducto
+                                            <td>@detalle.Cantidad</td> // 🚨 AJUSTE: Usar detalle.Cantidad
+                                            <td>@detalle.PrecioUnitario.ToString("C", currencyCulture)</td> // 🚨 AJUSTE: Usar detalle.PrecioUnitario
+                                            <td>@detalle.Subtotal.ToString("C", currencyCulture)</td> // 🚨 AJUSTE: Usar detalle.Subtotal
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p class="text-muted">Si requiere más información sobre una orden, por favor, contacte a soporte técnico.</p>
+    }
+</main>

@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Contáctanos";
+}
+<main aria-labelledby="title">
+    <h2 id="title" class="text-primary border-bottom pb-2">Estamos listos para ayudarte 🤝</h2>
+    <p class="lead">Nuestro equipo de soporte está disponible para resolver tus dudas sobre productos, pedidos o servicio técnico.</p>
+
+    <div class="row mt-4">
+
+        @* --- COLUMNA DE INFORMACIÓN DE CONTACTO --- *@
+        <div class="col-md-6">
+            <h3>Información Directa</h3>
+            <address>
+                <strong>Dirección Central:</strong><br />
+                Avenida de la Tecnología, Edificio Beta, Piso 10<br />
+                Ciudad del Saber, CP 10101<br />
+                <abbr title="Teléfono">Teléfono:</abbr>
+                <a href="tel:+50680000000">(+506) 8000-0000</a>
+            </address>
+
+            <address>
+                <strong>Soporte Técnico:</strong> <a href="mailto:soporte@mvctienda.com">soporte@mvctienda.com</a><br />
+                <strong>Ventas Corporativas:</strong> <a href="mailto:ventas@mvctienda.com">ventas@mvctienda.com</a>
+            </address>
+
+            <h3 class="mt-4">Horario de Atención</h3>
+            <p>
+                Lunes a Viernes: 8:00 a.m. - 6:00 p.m.<br />
+                Sábados: 9:00 a.m. - 1:00 p.m.
+            </p>
+        </div>
+
+        @* --- COLUMNA DE FORMULARIO DE CONTACTO SIMULADO --- *@
+        <div class="col-md-6">
+            <h3>Envíanos un Mensaje</h3>
+            @* Este formulario debe apuntar a una acción POST si hay un backend de envío de correos *@
+            @using (Html.BeginForm("ContactForm", "Home", FormMethod.Post, new { @class = "p-3 border rounded bg-light" }))
+            {
+                <div class="mb-3">
+                    <label for="Name" class="form-label">Tu Nombre</label>
+                    <input type="text" class="form-control" id="Name" required />
+                </div>
+                <div class="mb-3">
+                    <label for="Email" class="form-label">Correo Electrónico</label>
+                    <input type="email" class="form-control" id="Email" required />
+                </div>
+                <div class="mb-3">
+                    <label for="Message" class="form-label">Mensaje</label>
+                    <textarea class="form-control" id="Message" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Enviar Consulta</button>
+                <small class="form-text text-muted">Te responderemos en menos de 24 horas hábiles.</small>
+            }
+        </div>
+    </div>
+</main>

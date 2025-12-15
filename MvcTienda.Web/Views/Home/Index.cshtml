@@ -1,0 +1,148 @@
+﻿@{
+    ViewBag.Title = "Inicio - Tecnología y Electrónica";
+}
+
+<main>
+    <!-- SECCIÓN HERO (Banner Principal) -->
+    <div class="jumbotron-bg p-5 mb-4 rounded-3 shadow-lg"
+              style="background-image: url('https://placehold.co/1200x400/1e293b/ffffff?text=Descubre+la+Última+Tecnología'); background-size: cover; background-position: center;">
+
+        <div class="jumbotron-overlay">
+            <div class="container-fluid py-5 text-center text-white">
+                <h1 class="display-4 fw-bold mb-4">La Tecnología que Impulsa tu Mundo</h1> @* 🚨 Agregado Título H1 *@
+                <p>
+                    <a href="@Url.Action("Index", "Producto")" class="btn btn-warning btn-lg shadow-lg">
+                        Ver Catálogo Completo 🚀
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- SECCIÓN DE PRODUCTOS DESTACADOS (Simulación de Carrusel/Tarjetas) -->
+    <h2 class="mt-5 mb-4 text-center text-primary border-bottom pb-2">🔥 Ofertas de la Semana</h2>
+
+    <div class="row g-4 mb-5">
+
+        <!-- Tarjeta de Producto 1: Smartphone -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <img src="https://placehold.co/600x400/5eead4/0f172a?text=Smartphone+Pro" class="card-img-top" alt="Smartphone Pro">
+                <div class="card-body">
+                    <h5 class="card-title text-truncate">Smartphone X9 Ultra</h5>
+                    <p class="card-text text-success fw-bold">$899.99</p>
+                    <a href="@Url.Action("Details", "Producto", new { id = 1 })" class="btn btn-sm btn-primary w-100">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Producto 2: Laptop -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <img src="https://placehold.co/600x400/94a3b8/ffffff?text=Laptop+Gamer" class="card-img-top" alt="Laptop Gamer">
+                <div class="card-body">
+                    <h5 class="card-title text-truncate">Laptop Gamer i7/32GB</h5>
+                    <p class="card-text text-success fw-bold">$1,450.00</p>
+                    <a href="@Url.Action("Details", "Producto", new { id = 2 })" class="btn btn-sm btn-primary w-100">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Producto 3: Audífonos -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <img src="https://placehold.co/600x400/fecaca/991b1b?text=Audifonos+ANC" class="card-img-top" alt="Audífonos ANC">
+                <div class="card-body">
+                    <h5 class="card-title text-truncate">Audífonos Inalámbricos Premium</h5>
+                    <p class="card-text text-danger fw-bold"><del>$199.99</del> $129.99</p>
+                    <a href="@Url.Action("Details", "Producto", new { id = 3 })" class="btn btn-sm btn-primary w-100">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Producto 4: Smartwatch -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 transition-hover">
+                <img src="https://placehold.co/600x400/60a5fa/1f2937?text=Smartwatch+V2" class="card-img-top" alt="Smartwatch V2">
+                <div class="card-body">
+                    <h5 class="card-title text-truncate">Smartwatch Deportivo Resistente</h5>
+                    <p class="card-text text-success fw-bold">$99.99</p>
+                    <a href="@Url.Action("Details", "Producto", new { id = 4 })" class="btn btn-sm btn-primary w-100">Ver Detalles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE CATEGORÍAS (Acceso Rápido) -->
+    <h2 class="mt-5 mb-4 text-center text-secondary border-bottom pb-2">Explorar por Categoría</h2>
+
+    <div class="row g-4 text-center mb-5">
+        <div class="col-md-4">
+            <div class="bg-light p-4 rounded-3 shadow-sm border">
+                <i class="bi bi-phone-fill fs-1 text-info"></i> <!-- Usar íconos de Bootstrap Icons si están disponibles -->
+                <h3 class="fs-4 mt-2">Smartphones</h3>
+                <p>La mejor conectividad y potencia de bolsillo.</p>
+                <a href="@Url.Action("Index", "Producto", new { category = "Smartphones" })" class="btn btn-outline-info">Comprar</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-light p-4 rounded-3 shadow-sm border">
+                <i class="bi bi-laptop-fill fs-1 text-info"></i>
+                <h3 class="fs-4 mt-2">Computadoras</h3>
+                <p>Laptops, Desktops y accesorios para el trabajo o gaming.</p>
+                <a href="@Url.Action("Index", "Producto", new { category = "Computadoras" })" class="btn btn-outline-info">Comprar</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="bg-light p-4 rounded-3 shadow-sm border">
+                <i class="bi bi-headphones fs-1 text-info"></i>
+                <h3 class="fs-4 mt-2">Audio y Video</h3>
+                <p>Experimenta el sonido y la imagen de alta fidelidad.</p>
+                <a href="@Url.Action("Index", "Producto", new { category = "Audio" })" class="btn btn-outline-info">Comprar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Valor Agregado (Confianza) -->
+    <div class="row bg-light p-4 rounded-3 text-center border mt-5">
+        <div class="col-md-4">
+            <h5 class="text-success">🚚 Envío Rápido</h5>
+            <p class="small text-muted">Recibe tus productos en 24-48 horas.</p>
+        </div>
+        <div class="col-md-4">
+            <h5 class="text-success">🔒 Pagos Seguros</h5>
+            <p class="small text-muted">Transacciones protegidas con cifrado de alto nivel.</p>
+        </div>
+        <div class="col-md-4">
+            <h5 class="text-success">📞 Soporte 24/7</h5>
+            <p class="small text-muted">Asistencia siempre disponible para ti.</p>
+        </div>
+    </div>
+</main>
+
+<style>
+    /* Estilos personalizados para efectos hover */
+    .card.transition-hover {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+        .card.transition-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
+        }
+
+    /* Estilo para un margen inferior más grande */
+    .mb-extra-large {
+        margin-bottom: 6rem !important;
+    }
+
+    /* Opcional: Si usaste el overlay y solo lo necesitas aquí */
+    .jumbotron-bg {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .jumbotron-overlay {
+        position: absolute;
+        /* ... */
+    }
+</style>

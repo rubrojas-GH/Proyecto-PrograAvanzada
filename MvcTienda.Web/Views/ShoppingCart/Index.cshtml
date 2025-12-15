@@ -1,0 +1,108 @@
+﻿@using MvcTienda.Web.Models
+@using System.Web.Mvc.Html
+@using System.Linq
+@model List<CarritoItemViewModel>
+
+@{
+    ViewBag.Title = "Carrito de Compras";
+
+    // Cálculo del total general basado en los subtotales de los ítems
+    decimal totalGeneral = Model?.Sum(item => item.Subtotal) ?? 0;
+}
+
+<h2>@ViewBag.Title</h2>
+<hr />
+
+@* Mensajes de error (ej. stock insuficiente, carrito vacío) *@
+@if (Html.ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+{
+    <div class="alert alert-danger">
+        <h4>Error al procesar la compra:</h4>
+        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+    </div>
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="glyphicon glyphicon-shopping-cart"></i> Tu carrito de compras está vacío.
+    </div>
+    <p>@Html.ActionLink("Ir al Catálogo", "Index", "Producto", null, new { @class = "btn btn-default" })</p>
+}
+else
+{
+<div class="row">
+    <div class="col-md-8">
+        <h4>Productos en tu Carrito</h4>
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th style="width: 150px;">Precio Unitario</th>
+                    <th style="width: 150px;">Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.ActionLink(item.NombreProducto, "Details", "Producto", new { id = item.IdProducto }, null)
+                        </td>
+                        <td>@item.PrecioUnitario.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
+
+                        @* -- Columna de Cantidad -- *@
+                        <td>
+                            <p class="form-control-static">@item.Cantidad</p>
+                        </td>
+
+                        <td>@item.Subtotal.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
+
+                        @* -- Botón para Eliminar (POST: /ShoppingCart/RemoveItem) -- *@
+
+                        <td>
+                            @using (Html.BeginForm("RemoveItem", "ShoppingCart", FormMethod.Post, new { style = "display:inline;" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("idProducto", item.IdProducto)
+                                <button type="submit" class="btn btn-xs btn-danger" title="Eliminar Producto" onclick="return confirm('¿Desea eliminar este producto del carrito?');">
+                                    <i class="glyphicon glyphicon-trash"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p>@Html.ActionLink("← Seguir Comprando", "Index", "Producto", null, new { @class = "btn btn-default" })</p>
+    </div>
+
+    @* -- COLUMNA DERECHA: RESUMEN Y CHECKOUT (RF3) -- *@
+    <div class="col-md-4">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h4 class="panel-title">Resumen de la Orden</h4>
+            </div>
+            <div class="panel-body">
+                <p>Subtotal de productos:</p>
+                <h3 class="text-success text-right">@totalGeneral.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h3>
+
+                <hr />
+
+                @* Formulario para el Checkout (POST: /ShoppingCart/Checkout) *@
+                @using (Html.BeginForm("Checkout", "ShoppingCart", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <p class="text-muted">Al presionar "Confirmar Compra", se procesará el pago y se descontará el inventario.</p>
+                    <button type="submit" class="btn btn-block btn-lg btn-success">
+                        <i class="glyphicon glyphicon-check"></i> Confirmar Compra
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+}

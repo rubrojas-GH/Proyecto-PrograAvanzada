@@ -1,0 +1,89 @@
+﻿@using MvcTienda.Aplicacion.Usuarios
+@model UsuarioDto
+
+@{
+    ViewBag.Title = "Editar Usuario: " + Model.Nombre;
+
+    // Asumimos que la referencia al RolDto es correcta
+    IEnumerable<MvcTienda.Aplicacion.Roles.RolDto> rolesList = ViewBag.Roles as IEnumerable<MvcTienda.Aplicacion.Roles.RolDto>;
+}
+
+<h2>@ViewBag.Title</h2>
+<p class="lead">Modificación de perfil y privilegios.</p>
+<hr />
+
+@using (Html.BeginForm("Edit", "User", FormMethod.Post, new { @class = "form-horizontal" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        @* ID del Usuario: Correcto *@
+        @Html.HiddenFor(model => model.Id)
+
+        @Html.Hidden("ContrasenaActual", Model.ContrasenaActual)
+
+        @*Email (lo mantendremos oculto, o lo usaremos con el nombre correcto) *@
+        @Html.HiddenFor(model => model.Email)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <p class="form-control-static">@Model.Email</p> @* Muestra el email, no permite editar *@
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Estado, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="checkbox">
+                    @Html.CheckBoxFor(model => model.Estado)
+                    @Html.ValidationMessageFor(model => model.Estado, "", new { @class = "text-danger" })
+                    <span class="help-block">Desmarcar para desactivar la cuenta del usuario.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IdRol, "Rol de Usuario", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @if (rolesList != null)
+                {
+                    @Html.DropDownListFor(
+                        model => model.IdRol, // CORRECCIÓN: model.IdRol
+                        // CORRECCIÓN 8: Asumimos RolDto tiene propiedades 'Id' y 'nombreRol'.
+                        new SelectList(rolesList, "Id", "nombreRol", Model.IdRol), // CORRECCIÓN: Model.IdRol
+                        "Seleccione un Rol",
+                        new { @class = "form-control" }
+                    )
+                }
+                else
+                {
+                    <p class="form-control-static text-danger">Error: Lista de Roles no cargada.</p>
+                }
+                @Html.ValidationMessageFor(model => model.IdRol, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Guardar Cambios" class="btn btn-success" />
+                @Html.ActionLink("Cancelar y Volver", "Index", null, new { @class = "btn btn-default" })
+            </div>
+        </div>
+    </div>
+}
+
+<hr />
+<p>
+    @Html.ActionLink("Volver a la Lista", "Index")
+</p>

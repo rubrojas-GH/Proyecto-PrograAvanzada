@@ -1,0 +1,116 @@
+﻿@using MvcTienda.Aplicacion.Ordenes
+@model OrdenDto
+
+@{
+    ViewBag.Title = "Confirmación de Compra";
+    // Formateador de moneda (ajusta la cultura según sea necesario, aquí usamos es-CR por consistencia)
+    var currencyCulture = new System.Globalization.CultureInfo("es-CR");
+}
+
+<div class="container">
+    <div class="jumbotron text-center">
+        <h1><i class="glyphicon glyphicon-check text-success"></i> ¡Compra Exitosa!</h1>
+        <p class="lead">Tu orden ha sido procesada correctamente.</p>
+    </div>
+
+    <div class="row">
+
+        @* --- COLUMNA IZQUIERDA: RESUMEN DE LA ORDEN --- *@
+        <div class="col-md-6">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Detalles de la Orden #@Model.Id</h3>
+                </div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal">
+                        <dt>Fecha de Compra:</dt>
+                        <dd>@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                        <dt>Comprador:</dt>
+                        <dd>@Model.NombreUsuario</dd>
+
+                        <dt>ID de Usuario:</dt>
+                        <dd>@Model.IdUsuario</dd>
+
+                        <dt>Total Final:</dt>
+                        <dd>
+                            <span class="lead text-success">
+                                <strong>@Model.Total.ToString("C", currencyCulture)</strong>
+                            </span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        @* --- COLUMNA DERECHA: TOTAL Y ACCIONES --- *@
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Acciones y Próximos Pasos</h3>
+                </div>
+                <div class="panel-body">
+                    <p>Gracias por tu compra. Recibirás un correo de confirmación en breve.</p>
+
+                    <div class="btn-group btn-group-justified" role="group" aria-label="...">
+                        <div class="btn-group" role="group">
+                            @Html.ActionLink("Ver Historial de Órdenes", "Historial", "Orden", new { idUsuario = Model.IdUsuario }, new { @class = "btn btn-default" })
+                        </div>
+                        <div class="btn-group" role="group">
+                            @Html.ActionLink("Volver al Catálogo", "Index", "Producto", null, new { @class = "btn btn-primary" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    @* --- DETALLE DE PRODUCTOS COMPRADOS --- *@
+    <h3>Productos Incluidos en la Orden</h3>
+
+    @if (Model.Items != null && Model.Items.Any())
+    {
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>ID Producto</th>
+                    <th>Nombre</th>
+                    <th class="text-right">Precio de Compra</th>
+                    <th class="text-right">Cantidad</th>
+                    <th class="text-right">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.IdProducto</td>
+                        <td>
+                            @Html.ActionLink(item.NombreProducto, "Details", "Producto", new { id = item.IdProducto }, null)
+                        </td>
+                        <td class="text-right">@item.PrecioUnitario.ToString("C", currencyCulture)</td>
+                        <td class="text-right">@item.Cantidad</td>
+                        <td class="text-right"><strong>@item.Subtotal.ToString("C", currencyCulture)</strong></td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" class="text-right"><strong>TOTAL DE LA ORDEN:</strong></td>
+                    <td class="text-right success">
+                        <h3>@Model.Total.ToString("C", currencyCulture)</h3>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="glyphicon glyphicon-exclamation-sign"></i> No se encontraron detalles de productos para esta orden.
+        </div>
+    }
+
+</div>

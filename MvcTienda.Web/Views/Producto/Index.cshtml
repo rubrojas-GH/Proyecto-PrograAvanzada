@@ -1,0 +1,100 @@
+﻿@using MvcTienda.Aplicacion.Productos
+@model IEnumerable<ProductoDto>
+
+@{
+    ViewBag.Title = "Catálogo de Productos";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <h2>Catálogo de Productos Disponibles</h2>
+        <p class="lead">Explora nuestra selección de productos. ¡Recuerda que solo Asociados pueden realizar compras!</p>
+
+        @* Verificar si el usuario es Administrador para darle un enlace al panel de gestión (RF2) *@
+        @if (User.IsInRole("Administrador"))
+        {
+            <div class="alert alert-info">
+                @Html.ActionLink("Ir a la Administración de Productos", "AdminIndex", "Producto", null, new { @class = "btn btn-info" })
+            </div>
+        }
+
+        @* Muestra mensajes de éxito (ej. después de añadir al carrito) *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+    </div>
+</div>
+
+<hr />
+
+<div class="row">
+    @if (!Model.Any())
+    {
+        <div class="col-md-12">
+            <div class="alert alert-warning">
+                No hay productos activos disponibles en este momento.
+            </div>
+        </div>
+    }
+
+    @foreach (var producto in Model)
+    {
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+
+                @{
+                    // Lógica para mostrar la primera imagen, si existe
+                    // Usamos la colección de Imagenes del DTO
+                    string imageUrl = producto.Imagenes != null && producto.Imagenes.Any()
+                                            ? producto.Imagenes.First().UrlImagen // 👈 Usar UrlImagen del ImagenProductoDto
+                                            : "/Content/images/placeholder.jpg";
+                }
+                <a href="@Url.Action("Details", new { id = producto.Id })">
+                    // 👈 Usar Id del DTO
+                    <img class="card-img-top" src="@imageUrl" alt="@producto.Nombre" style="max-height: 200px; width: 100%; object-fit: cover;"> // 👈 Usar Nombre del DTO
+                </a>
+
+                <div class="card-body">
+                    <h4 class="card-title">
+                        @Html.ActionLink(producto.Nombre, "Details", new { id = producto.Id }) // 👈 Usar Id y Nombre
+                    </h4>
+
+                    @* Asume formato de moneda: $1,234.00 *@
+                    <h5>@producto.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h5> // 👈 Usar PrecioProducto del DTO
+
+                    <p class="card-text">
+                        Stock:
+                        @if (producto.Stock > 0) // 👈 Usar Stock del DTO
+                        {
+                            <span class="text-success">@producto.Stock en inventario</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Agotado</span>
+                        }
+                    </p>
+                </div>
+
+                <div class="card-footer">
+                    @if (producto.Stock > 0 && User.IsInRole("Asociado"))
+                    {
+                        // Formulario POST para agregar un producto al carrito (RF3)
+                        using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "form-inline" }))
+                        {
+                            @Html.Hidden("idProducto", producto.Id) // 👈 Usar Id
+                            <input type="number" name="cantidad" value="1" min="1" max="@producto.Stock" class="form-control input-sm" style="width: 60px; margin-right: 5px;" />
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="glyphicon glyphicon-shopping-cart"></i> Añadir
+                            </button>
+                        }
+                    }
+                    else if (producto.Stock > 0)
+                    {
+                        <span class="text-muted">Inicie sesión para comprar</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
