@@ -1,0 +1,55 @@
+﻿@model MvcTienda.Aplicacion.Categorias.CategoriaDto
+
+@{
+    ViewBag.Title = "Editar Categoría";
+}
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="panel panel-warning" style="margin-top: 30px;">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="glyphicon glyphicon-edit"></i> Editar Categoría</h3>
+            </div>
+            <div class="panel-body">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    @* IMPORTANTE: Campo oculto para el ID *@
+                    @Html.HiddenFor(model => model.IdCategoria)
+
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.NombreCategoria, "Nombre de la Categoría", htmlAttributes: new { @class = "control-label col-md-12", style = "text-align: left;" })
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.NombreCategoria, new { htmlAttributes = new { @class = "form-control" } })
+                                @Html.ValidationMessageFor(model => model.NombreCategoria, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="glyphicon glyphicon-refresh"></i> Actualizar Cambios
+                                </button>
+                                @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-default" })
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <p class="text-muted">
+            <small>ID de Registro: @Model.IdCategoria</small>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

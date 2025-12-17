@@ -18,14 +18,18 @@ namespace MvcTienda.Aplicacion.Categorias
 
         public IEnumerable<CategoriaDto> GetAllCategorias()
         {
+            // Obtenemos las categorías del repositorio
             var categorias = _categoriaRepository.GetAll();
-            // Mapeo simple de Entidad a DTO
-            return categorias.Select(c => new CategoriaDto
-            {
-                IdCategoria = c.idCategoria,
-                NombreCategoria = c.nombreCategoria,
-                DescripcionCategoria = c.descripcionCategoria
-            }).ToList();
+
+            return categorias
+                .OrderBy(c => c.idCategoria)
+                .Select(c => new CategoriaDto
+                {
+                    IdCategoria = c.idCategoria,
+                    NombreCategoria = c.nombreCategoria,
+                    DescripcionCategoria = c.descripcionCategoria
+                })
+                .ToList();
         }
 
         public CategoriaDto GetCategoriaById(int id)

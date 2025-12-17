@@ -1,80 +1,90 @@
-﻿@using MvcTienda.Aplicacion.Productos
+﻿<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+@using MvcTienda.Aplicacion.Productos
 @model IEnumerable<ProductoDto>
 
 @{
-    ViewBag.Title = "Administración de Productos";
+    ViewBag.Title = "Gestión de Inventario";
 }
 
-<h2>@ViewBag.Title</h2>
-<p class="lead">Gestión de la información y el inventario del catálogo.</p>
+<div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+    <div>
+        <h2 class="text-dark fw-bold">@ViewBag.Title</h2>
+        <p class="text-muted">Control total de productos, stock y estados del catálogo.</p>
+    </div>
+    <div>
+        @Html.ActionLink("Crear Nuevo Producto", "Create", "Producto", null, new { @class = "btn btn-primary shadow-sm" })
+        @Html.ActionLink("Gestionar Categorías", "Index", "Categoria", null, new { @class = "btn btn-outline-info shadow-sm" })
+    </div>
+</div>
 
-<p>
-    @Html.ActionLink("Crear Nuevo Producto", "Create", null, new { @class = "btn btn-primary" })
-</p>
-
-@* Mostrar mensajes de éxito o error después de un CRUD *@
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 }
 
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.Id)</th> // 👈 AJUSTE: Id
-            <th>@Html.DisplayNameFor(model => model.Nombre)</th> // 👈 AJUSTE: Nombre
-            <th>@Html.DisplayNameFor(model => model.Precio)</th> // 👈 AJUSTE: PrecioProducto
-            <th>@Html.DisplayNameFor(model => model.Stock)</th> // 👈 AJUSTE: Stock
-            <th>@Html.DisplayNameFor(model => model.EstadoProducto)</th> // 👈 AJUSTE: EstadoProducto
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            // Resaltar productos inactivos o con bajo stock para el administrador
-            string rowClass = "";
-            if (item.EstadoProducto == false)
-            {
-                rowClass = "danger"; // Inactivo: Rojo
-            }
-            else if (item.Stock <= 5)
-            {
-                rowClass = "warning"; // Stock bajo: Amarillo
-            }
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                <tr>
+                    <th class="ps-3">ID</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th class="text-center">Stock</th>
+                    <th>Estado</th>
+                    <th class="text-end pe-3">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    string statusClass = item.EstadoProducto ? "text-success" : "text-danger";
+                    string rowClass = !item.EstadoProducto ? "table-light opacity-75" : (item.Stock <= 5 ? "table-warning" : "");
 
-            <tr class="@rowClass">
-                <td>@Html.DisplayFor(modelItem => item.Id)</td> // 👈 AJUSTE: Id
-                <td>@Html.DisplayFor(modelItem => item.Nombre)</td> // 👈 AJUSTE: Nombre
-                <td>@item.PrecioProducto.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
-                <td>@Html.DisplayFor(modelItem => item.Stock)</td> // 👈 AJUSTE: Stock
-                <td>
-                    @if (item.EstadoProducto == true) // 👈 AJUSTE: EstadoProducto
-                    {
-                        <span class="label label-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="label label-default">Inactivo</span>
-                    }
-                </td>
-                <td>
-                    @Html.ActionLink("Editar", "Edit", new { id = item.Id }, new { @class = "btn btn-xs btn-default" }) | // 👈 AJUSTE: Id
-                    @Html.ActionLink("Detalles", "Details", new { id = item.Id }, new { @class = "btn btn-xs btn-default" }) | // 👈 AJUSTE: Id
-                    @* Usamos un formulario para la acción de Eliminar por seguridad *@
-                    @using (Html.BeginForm("Delete", "Producto", new { id = item.Id }, FormMethod.Post, new { style = "display:inline;" })) // 👈 AJUSTE: Id
-                    {
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('¿Está seguro de que desea eliminar este producto? (Esta acción es permanente)');">
-                            Eliminar
-                        </button>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                    <tr class="@rowClass">
+                        <td class="ps-3 fw-bold text-muted">#@item.Id</td>
+                        <td>
+                            <div class="fw-bold text-dark">@item.Nombre</div>
+                        </td>
+                        <td><span class="badge bg-secondary opacity-75">@item.NombreCategoria</span></td>
+                        <td class="fw-bold text-primary">@item.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
+                        <td class="text-center">
+                            <span class="@(item.Stock <= 5 ? "badge bg-danger" : "fw-bold")">@item.Stock</span>
+                        </td>
+                        <td>
+                            <i class="bi bi-circle-fill @statusClass small me-1"></i>
+                            <span class="small">@(item.EstadoProducto ? "Activo" : "Inactivo")</span>
+                        </td>
+                        <td class="text-end pe-3">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="@Url.Action("Edit", "Producto", new { id = item.Id })"
+                                   class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+
+                                <a href="@Url.Action("Details", "Producto", new { id = item.Id })"
+                                   class="btn btn-sm btn-outline-secondary" title="Detalles">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+
+                                @using (Html.BeginForm("Delete", "Producto", new { id = item.Id }, FormMethod.Post, new { @class = "d-inline" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('¿Eliminar producto?');" title="Eliminar">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

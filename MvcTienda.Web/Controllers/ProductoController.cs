@@ -13,28 +13,18 @@ namespace MvcTienda.Web.Controllers
         private readonly ICategoriaService _categoriaService;
 
         // Inyección de dependencias (Autofac inyectará ambos servicios)
-        public ProductoController(IProductoService productoService, ICategoriaService categoriaService) // 🟢 Recibe ICategoriaService
+        public ProductoController(IProductoService productoService, ICategoriaService categoriaService) // Recibe ICategoriaService
         {
             _productoService = productoService;
             _categoriaService = categoriaService;
         }
 
-        // 🟢 Método auxiliar para cargar categorías en un SelectList
+        // 🟢 Método auxiliar para cargar categorías en un SelectList (usado en Create/Edit)
         private void CargarCategoriasEnViewBag()
         {
-            // Obtener todas las categorías
             var categorias = _categoriaService.GetAllCategorias();
-
-            // Convertir la lista de CategoríaDto a SelectListItem (necesario para el DropDownList en la vista)
-            ViewBag.CategoriaList = new SelectList(
-                categorias.Select(c => new SelectListItem
-                {
-                    Value = c.IdCategoria.ToString(), // El ID es el valor que se guarda
-                    Text = c.NombreCategoria         // El Nombre es lo que ve el usuario
-                }),
-                "Value",
-                "Text"
-            );
+            // "IdCategoria" es el DataValueField y "NombreCategoria" es el DataTextField
+            ViewBag.CategoriaList = new SelectList(categorias, "IdCategoria", "NombreCategoria");
         }
 
         // =========================
@@ -43,11 +33,20 @@ namespace MvcTienda.Web.Controllers
 
         // GET: /Producto
         // Muestra el catálogo de productos disponibles al público (RF2)
-        [AllowAnonymous] // Permite el acceso a usuarios no logueados
-        public ActionResult Index()
+        [AllowAnonymous]
+        public ActionResult Index(int? categoriaId)
         {
-            // Muestra solo productos activos
-            var productos = _productoService.GetCatalogoProductosActivos();
+            // 1. Cargar las categorías para el menú de navegación (la barra lateral)
+            ViewBag.Categorias = _categoriaService.GetAllCategorias();
+
+            // 2. Guardar el ID actual para que la vista sepa cuál resaltar
+            ViewBag.CategoriaActualId = categoriaId;
+
+            // 3. Llamar al servicio. 
+            // Si categoriaId es null, el servicio traerá TODOS los activos.
+            // Si tiene un valor (ej. 5), el servicio filtrará por esa categoría.
+            var productos = _productoService.GetCatalogoProductosActivos(categoriaId);
+
             return View(productos);
         }
 
@@ -124,8 +123,10 @@ namespace MvcTienda.Web.Controllers
             if (producto == null)
                 return HttpNotFound();
 
-            CargarCategoriasEnViewBag();
-            ((SelectList)ViewBag.CategoriaList).Where(s => s.Value == producto.IdCategoria.ToString()).First().Selected = true;
+            // En lugar de llamar a CargarCategoriasEnViewBag(), hacemos el SelectList aquí
+            // para poder pasarle el 'IdCategoria' como valor seleccionado directamente.
+            var categorias = _categoriaService.GetAllCategorias();
+            ViewBag.CategoriaList = new SelectList(categorias, "IdCategoria", "NombreCategoria", producto.IdCategoria);
 
             return View(producto);
         }
@@ -136,6 +137,8 @@ namespace MvcTienda.Web.Controllers
         [Authorize(Roles = "Administrador")]
         public ActionResult Edit(ProductoDto productoDto)
         {
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+
             if (!ModelState.IsValid)
             {
                 CargarCategoriasEnViewBag(); // Recargar DropDownList en caso de error

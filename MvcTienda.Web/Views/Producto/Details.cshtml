@@ -6,176 +6,167 @@
     ViewBag.Title = Model.Nombre;
 }
 
-<div class="row">
-    <div class="col-md-12">
-        @* Mensajes de confirmación (ej. resena enviada, producto añadido) *@
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-        }
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-        }
-    </div>
-</div>
+<div class="container mt-4">
+    @* Mensajes de Feedback *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
 
-<div class="row">
-
-    @* ============================================== *@
-    @* COLUMNA DE IMÁGENES              *@
-    @* ============================================== *@
-    <div class="col-md-6">
-        <h2 class="mb-4">@Model.Nombre</h2> 
-
-        @if (Model.Imagenes != null && Model.Imagenes.Any())
-        {
-            // Usamos el ImagenProductoDto anidado
-            string mainImageUrl = Model.Imagenes.First().UrlImagen;
-            <img src="@mainImageUrl" alt="@Model.Nombre" class="img-responsive img-thumbnail" style="max-height: 400px; width: auto; margin-bottom: 20px;" />
-
-            // Aquí se podrían listar más imágenes o un carrusel
-        }
-        else
-        {
-            <img src="/Content/images/placeholder.jpg" alt="No Image" class="img-responsive img-thumbnail" style="max-height: 400px; width: auto; margin-bottom: 20px;" />
-        }
-    </div>
-
-    @* ============================================== *@
-    @* COLUMNA DE INFORMACIÓN Y COMPRA     *@
-    @* ============================================== *@
-    <div class="col-md-6">
-
-        <h3 class="text-primary">@Model.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h3>
-        <hr />
-
-        <dl class="dl-horizontal">
-            <dt>Descripción</dt>
-            <dd>@(string.IsNullOrEmpty(Model.Descripcion) ? "Sin descripción" : Model.Descripcion)</dd>
-
-            <dt>Disponibilidad</dt>
-            <dd>
-                @if (Model.EstadoProducto == true)
-                {
-                    <span class="label label-success">Activo</span>
-                }
-                else
-                {
-                    <span class="label label-default">Inactivo</span>
-                }
-            </dd>
-
-            <dt>Stock Actual</dt>
-            <dd>
-                @if (Model.Stock > 0)
-                {
-                    <strong class="text-success">@Model.Stock unidades</strong>
-                }
-                else
-                {
-                    <strong class="text-danger">Agotado</strong>
-                }
-            </dd>
-        </dl>
-
-        <hr />
-
-        @* Lógica para Añadir al Carrito (RF3) *@
-        @if (Model.Stock > 0 && User.IsInRole("Asociado"))
-        {
-            <h4>Añadir al Carrito</h4>
-            using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "form-inline" }))
-            {
-                @Html.Hidden("idProducto", Model.Id)
-
-                <div class="form-group">
-                    <label for="cantidad">Cantidad:</label>
-                    <input type="number" name="cantidad" value="1" min="1" max="@Model.Stock" class="form-control" style="width: 80px; margin-right: 10px;" required />
-                </div>
-
-                <button type="submit" class="btn btn-lg btn-success">
-                    <i class="glyphicon glyphicon-shopping-cart"></i> Comprar
-                </button>
+    <div class="row g-5">
+        @* --- COLUMNA DE IMÁGENES --- *@
+        <div class="col-md-6">
+            @{
+                var imagenPrincipal = Model.Imagenes?.FirstOrDefault()?.UrlImagen
+                                     ?? "https://placehold.co/600x600?text=" + Server.UrlEncode(Model.Nombre);
             }
-        }
-        else if (Model.Stock > 0)
-        {
-            <p class="text-info">Inicie sesión como Asociado para comprar este producto.</p>
-        }
-        else
-        {
-            <p class="text-danger">Este producto se encuentra agotado temporalmente.</p>
-        }
 
-    </div>
-</div>
-
-<hr />
-
-@* ============================================== *@
-@* SECCIÓN DE RESEÑAS (RF4) - AJUSTADA         *@
-@* ============================================== *@
-<div class="row">
-    <div class="col-md-12">
-        <h3>
-            Reseñas de Usuarios
-            @if (User.IsInRole("Asociado"))
-            {
-                // Enlace para crear una resena (solo Asociados)
-                @Html.ActionLink("Escribir una Reseña", "Create", "Resena", new { id = Model.Id }, new { @class = "btn btn-xs btn-primary pull-right" })
-            }
-        </h3>
-
-        <hr />
-
-        @{
-            // El servicio de reseñas ya se encargó de filtrar por 'Aprobada'
-            // Usamos la colección de DTOs de reseñas
-            var resenasAprobadas = Model.Resenas?.ToList() ?? new List<ResenaDto>();
-        }
-
-        @if (!resenasAprobadas.Any())
-        {
-            <div class="alert alert-info">
-                Aún no hay reseñas aprobadas para este producto. ¡Sé el primero en dejar una!
+            <div class="main-image-container bg-white p-3 rounded shadow-sm border mb-3">
+                <img src="@imagenPrincipal" alt="@Model.Nombre" class="img-fluid" style="width: 100%; max-height: 500px; object-fit: contain;" />
             </div>
-        }
-        else
-        {
-            <ul class="list-group">
-                @foreach (var resena in resenasAprobadas.OrderByDescending(r => r.Fecha))
-                {
-                    <li class="list-group-item">
-                        <div class="row">
-                            <div class="col-xs-12">
-                                @* 2. AJUSTE CRÍTICO: Usar NombreUsuario y Fecha del DTO * @
-                                    <strong>@resena.NombreUsuario</strong>
-                                    <small class="pull-right text-muted">@resena.Fecha.ToShortDateString()</small>
-                                    <p>@resena.Comentario</p> @* 👈 AJUSTE: Usar Comentario *@
 
-                                @* Opcional: Mostrar estrellas de calificación (Calificacion) *@
-                                @for (int i = 0; i < resena.Calificacion; i++)
-                                {
-                                    <span class="glyphicon glyphicon-star" style="color: gold;"></span>
-                                }
-                                @for (int i = resena.Calificacion; i < 5; i++)
-                                {
-                                    <span class="glyphicon glyphicon-star-empty" style="color: lightgray;"></span>
-                                }
+            @if (Model.Imagenes != null && Model.Imagenes.Count() > 1)
+            {
+                <div class="row g-2">
+                    @foreach (var img in Model.Imagenes.Skip(1))
+                    {
+                        <div class="col-3">
+                            <img src="@img.UrlImagen" class="img-thumbnail transition-hover shadow-sm" style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;" />
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        @* --- COLUMNA DE INFORMACIÓN --- *@
+        <div class="col-md-6">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Producto")">Tienda</a></li>
+                    <li class="breadcrumb-item active">@Model.NombreCategoria</li>
+                </ol>
+            </nav>
+
+            <h1 class="fw-bold text-dark mb-3">@Model.Nombre</h1>
+            <h2 class="text-primary fw-bold mb-4">@Model.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h2>
+
+            <div class="bg-light p-4 rounded-3 border mb-4">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Categoría</dt>
+                    <dd class="col-sm-8 text-primary fw-bold">@Model.NombreCategoria</dd>
+
+                    <dt class="col-sm-4 mt-2">Estado</dt>
+                    <dd class="col-sm-8 mt-2">
+                        @if (Model.EstadoProducto == true)
+                        {
+                            <span class="badge bg-success">Disponible</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactivo</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4 mt-2">Stock</dt>
+                    <dd class="col-sm-8 mt-2 @(Model.Stock <= 5 ? "text-danger fw-bold" : "text-dark")">
+                        @Model.Stock unidades restantes
+                    </dd>
+                </dl>
+            </div>
+
+            <p class="text-muted mb-4 lead">@(string.IsNullOrEmpty(Model.Descripcion) ? "Este producto no cuenta con una descripción detallada todavía." : Model.Descripcion)</p>
+
+            @* Lógica de Compra *@
+            <div class="d-grid gap-2">
+                @if (Model.Stock > 0 && User.IsInRole("Asociado"))
+                {
+                    using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "p-3 border rounded bg-white shadow-sm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("idProducto", Model.Id)
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <label class="small fw-bold">CANTIDAD:</label>
+                                <input type="number" name="cantidad" value="1" min="1" max="@Model.Stock" class="form-control" style="width: 80px;" required />
+                            </div>
+                            <div class="col">
+                                <button type="submit" class="btn btn-success btn-lg w-100 mt-3 mt-sm-0">
+                                    <i class="bi bi-cart-plus-fill me-2"></i> Añadir al Carrito
+                                </button>
                             </div>
                         </div>
-                    </li>
+                    }
                 }
-            </ul>
-        }
+                else if (Model.Stock > 0)
+                {
+                    <div class="alert alert-warning border-0 shadow-sm">
+                        <i class="bi bi-info-circle-fill me-2"></i> Inicie sesión como <strong>Asociado</strong> para realizar compras.
+                    </div>
+                }
+                else
+                {
+                    <button class="btn btn-secondary btn-lg" disabled>Agotado Temporalmente</button>
+                }
+            </div>
+        </div>
+    </div>
 
+    <hr class="my-5" />
+
+    @* --- SECCIÓN DE RESEÑAS --- *@
+    <div class="row pb-5">
+        <div class="col-md-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold"><i class="bi bi-chat-quote-fill text-primary me-2"></i>Reseñas de la Comunidad</h3>
+                @if (User.IsInRole("Asociado"))
+                {
+                    <a href="@Url.Action("Create", "Resena", new { id = Model.Id })" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        Escribir Reseña
+                    </a>
+                }
+            </div>
+
+            @{ var resenasAprobadas = Model.Resenas?.OrderByDescending(r => r.Fecha).ToList() ?? new List<ResenaDto>(); }
+
+            @if (!resenasAprobadas.Any())
+            {
+                <div class="text-center py-5 bg-light rounded shadow-sm border border-dashed">
+                    <p class="text-muted mb-0">Aún no hay opiniones aprobadas para este producto. ¡Sé el primero!</p>
+                </div>
+            }
+            else
+            {
+                foreach (var resena in resenasAprobadas)
+                {
+                    <div class="card mb-3 border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold"><i class="bi bi-person-circle me-2"></i>@resena.NombreUsuario</span>
+                                <small class="text-muted">@resena.Fecha.ToShortDateString()</small>
+                            </div>
+
+                            <div class="mb-2 text-warning">
+                                @for (int i = 0; i < 5; i++)
+                                {
+                                    <i class="bi @(i < resena.Calificacion ? "bi-star-fill" : "bi-star")"></i>
+                                }
+                            </div>
+
+                            <p class="card-text text-dark">@resena.Comentario</p>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <a href="@Url.Action("Index", "Producto")" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
+        </a>
     </div>
 </div>
-
-<hr />
-
-@* Enlace para volver al catálogo *@
-<p>
-    @Html.ActionLink("← Volver al Catálogo", "Index", "Producto")
-</p>

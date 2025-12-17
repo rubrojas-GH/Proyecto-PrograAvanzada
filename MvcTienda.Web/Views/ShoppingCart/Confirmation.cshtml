@@ -2,115 +2,125 @@
 @model OrdenDto
 
 @{
-    ViewBag.Title = "Confirmación de Compra";
-    // Formateador de moneda (ajusta la cultura según sea necesario, aquí usamos es-CR por consistencia)
+    ViewBag.Title = "¡Gracias por su compra!";
     var currencyCulture = new System.Globalization.CultureInfo("es-CR");
 }
 
-<div class="container">
-    <div class="jumbotron text-center">
-        <h1><i class="glyphicon glyphicon-check text-success"></i> ¡Compra Exitosa!</h1>
-        <p class="lead">Tu orden ha sido procesada correctamente.</p>
+<div class="container py-5">
+    @* --- ENCABEZADO DE ÉXITO --- *@
+    <div class="text-center mb-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle mb-3" style="width: 80px; height: 80px;">
+            <i class="bi bi-check-circle-fill text-success fs-1"></i>
+        </div>
+        <h1 class="fw-bold text-dark">@ViewBag.Title</h1>
+        <p class="lead text-muted">Tu orden <span class="fw-bold text-dark">#@Model.Id</span> ha sido procesada con éxito.</p>
     </div>
 
-    <div class="row">
-
-        @* --- COLUMNA IZQUIERDA: RESUMEN DE LA ORDEN --- *@
-        <div class="col-md-6">
-            <div class="panel panel-info">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Detalles de la Orden #@Model.Id</h3>
+    <div class="row g-4">
+        @* --- RESUMEN DE LA ORDEN --- *@
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-receipt me-2 text-info"></i>Resumen de Facturación</h5>
                 </div>
-                <div class="panel-body">
-                    <dl class="dl-horizontal">
-                        <dt>Fecha de Compra:</dt>
-                        <dd>@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted small uppercase">Fecha de Compra</div>
+                        <div class="col-sm-8 fw-bold">@Model.Fecha.ToString("dd MMMM yyyy, hh:mm tt")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted small">Cliente</div>
+                        <div class="col-sm-8">@Model.NombreUsuario <span class="text-muted ps-2">(ID: @Model.IdUsuario)</span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-4 text-muted small">Estado del Pago</div>
+                        <div class="col-sm-8"><span class="badge bg-success-subtle text-success border border-success-subtle px-3">Confirmado</span></div>
+                    </div>
+                    <hr class="my-4 opacity-50">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">Total Pagado</span>
+                        <span class="h3 mb-0 text-info fw-bold">@Model.Total.ToString("C", currencyCulture)</span>
+                    </div>
+                </div>
+            </div>
 
-                        <dt>Comprador:</dt>
-                        <dd>@Model.NombreUsuario</dd>
-
-                        <dt>ID de Usuario:</dt>
-                        <dd>@Model.IdUsuario</dd>
-
-                        <dt>Total Final:</dt>
-                        <dd>
-                            <span class="lead text-success">
-                                <strong>@Model.Total.ToString("C", currencyCulture)</strong>
-                            </span>
-                        </dd>
-                    </dl>
+            @* --- TABLA DE PRODUCTOS --- *@
+            <div class="card shadow-sm border-0 rounded-4 mt-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-info"></i>Productos Comprados</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Producto</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-end pe-4">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">@item.NombreProducto</div>
+                                        <div class="text-muted small">Precio unit: @item.PrecioUnitario.ToString("C", currencyCulture)</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-light text-dark border">@item.Cantidad</span>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold text-dark">@item.Subtotal.ToString("C", currencyCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        @* --- COLUMNA DERECHA: TOTAL Y ACCIONES --- *@
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Acciones y Próximos Pasos</h3>
+        @* --- COLUMNA ACCIONES --- *@
+        <div class="col-lg-5">
+            <div class="card shadow border-0 rounded-4 bg-dark text-white p-4 h-100">
+                <h4 class="fw-bold mb-4">¿Qué sigue?</h4>
+                <div class="d-flex mb-4">
+                    <div class="me-3 fs-3 text-info"><i class="bi bi-envelope"></i></div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Correo de Confirmación</h6>
+                        <p class="small text-white-50">Hemos enviado el detalle de tu factura a tu correo electrónico registrado.</p>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <p>Gracias por tu compra. Recibirás un correo de confirmación en breve.</p>
+                <div class="d-flex mb-4">
+                    <div class="me-3 fs-3 text-info"><i class="bi bi-truck"></i></div>
+                    <div>
+                        <h6 class="mb-1 fw-bold">Preparando tu Envío</h6>
+                        <p class="small text-white-50">Nuestros asociados están preparando tus productos. Te avisaremos cuando salgan de bodega.</p>
+                    </div>
+                </div>
 
-                    <div class="btn-group btn-group-justified" role="group" aria-label="...">
-                        <div class="btn-group" role="group">
-                            @Html.ActionLink("Ver Historial de Órdenes", "Historial", "Orden", new { idUsuario = Model.IdUsuario }, new { @class = "btn btn-default" })
-                        </div>
-                        <div class="btn-group" role="group">
-                            @Html.ActionLink("Volver al Catálogo", "Index", "Producto", null, new { @class = "btn btn-primary" })
-                        </div>
+                <div class="mt-auto pt-4 border-top border-secondary">
+                    <div class="d-grid gap-3">
+                        @* Link ajustado a la sección de órdenes en Perfil *@
+                        <a href="@Url.Action("Index", "Perfil")" class="btn btn-outline-info btn-lg fs-6 py-3">
+                            <i class="bi bi-clock-history me-2"></i>Ver Mis Órdenes
+                        </a>
+                        <a href="@Url.Action("Index", "Producto")" class="btn btn-info text-white btn-lg fs-6 py-3 fw-bold">
+                            <i class="bi bi-shop me-2"></i>Seguir Comprando
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <hr />
-
-    @* --- DETALLE DE PRODUCTOS COMPRADOS --- *@
-    <h3>Productos Incluidos en la Orden</h3>
-
-    @if (Model.Items != null && Model.Items.Any())
-    {
-        <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <th>ID Producto</th>
-                    <th>Nombre</th>
-                    <th class="text-right">Precio de Compra</th>
-                    <th class="text-right">Cantidad</th>
-                    <th class="text-right">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Items)
-                {
-                    <tr>
-                        <td>@item.IdProducto</td>
-                        <td>
-                            @Html.ActionLink(item.NombreProducto, "Details", "Producto", new { id = item.IdProducto }, null)
-                        </td>
-                        <td class="text-right">@item.PrecioUnitario.ToString("C", currencyCulture)</td>
-                        <td class="text-right">@item.Cantidad</td>
-                        <td class="text-right"><strong>@item.Subtotal.ToString("C", currencyCulture)</strong></td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" class="text-right"><strong>TOTAL DE LA ORDEN:</strong></td>
-                    <td class="text-right success">
-                        <h3>@Model.Total.ToString("C", currencyCulture)</h3>
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    }
-    else
-    {
-        <div class="alert alert-warning">
-            <i class="glyphicon glyphicon-exclamation-sign"></i> No se encontraron detalles de productos para esta orden.
-        </div>
-    }
-
 </div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 700;
+    }
+</style>

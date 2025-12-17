@@ -39,6 +39,13 @@ namespace MvcTienda.Infraestructura.Repositories
                       .ToList();
         }
 
+        public IQueryable<Producto> GetAll()
+        {
+            // Devolvemos el IQueryable. Entity Framework se encargará de 
+            // traducir los filtros posteriores (.Where) a código SQL.
+            return _db.Productos;
+        }
+
         public void AddProducto(Producto producto)
         {
             _db.Productos.Add(producto);

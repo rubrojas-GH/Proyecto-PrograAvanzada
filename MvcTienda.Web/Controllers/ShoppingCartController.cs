@@ -15,182 +15,218 @@ namespace MvcTienda.Web.Controllers
         private readonly IOrdenService _ordenService;
         private readonly IUsuarioService _usuarioService;
         private readonly IProductoService _productoService;
-
-        // El carrito se gestionará en la Sesión (Diccionario: idProducto, Cantidad)
-        private const string SessionCartKey = "ShoppingCart";
+        private const string SessionCartKey = "ShoppingCart";
+        private readonly System.Globalization.CultureInfo _cultureCR = new System.Globalization.CultureInfo("es-CR");
 
         public ShoppingCartController(
             IOrdenService ordenService,
             IUsuarioService usuarioService,
-            IProductoService productoService) // ¡Autofac inyecta todo!
+            IProductoService productoService)
         {
             _ordenService = ordenService;
             _usuarioService = usuarioService;
             _productoService = productoService;
         }
 
-        // --- Métodos de Gestión del Carrito (Sesión) ---
-
-        //
         // GET: /ShoppingCart
-        // Muestra el contenido actual del carrito
         public ActionResult Index()
         {
-            Dictionary<int, int> cartItems =
-              Session[SessionCartKey] as Dictionary<int, int> ?? new Dictionary<int, int>();
-
-            List<CarritoItemViewModel> viewModelList = new List<CarritoItemViewModel>();
+            var cartItems = GetCartFromSession();
+            var viewModelList = new List<CarritoItemViewModel>();
 
             foreach (var item in cartItems)
             {
-                int idProducto = item.Key; // idProducto del diccionario
-                int cantidad = item.Value; // Cantidad del diccionario
-
-                // Obtener detalles del producto (Nombre, Precio, Stock)
-                var productoDto = _productoService.GetProductoConDetalles(idProducto);
-
+                var productoDto = _productoService.GetProductoConDetalles(item.Key);
                 if (productoDto != null)
                 {
                     viewModelList.Add(new CarritoItemViewModel
                     {
-                        IdProducto = idProducto,
+                        IdProducto = item.Key,
                         NombreProducto = productoDto.Nombre,
                         PrecioUnitario = productoDto.Precio,
                         StockDisponible = productoDto.Stock,
-                        Cantidad = cantidad
+                        Cantidad = item.Value
                     });
                 }
-                // Si el producto no existe (ha sido eliminado), se omite
             }
 
-            return View(viewModelList); // Devuelve la lista de ViewModels a la vista
-        }
+            return View(viewModelList);
+        }
 
-        //
         // POST: /ShoppingCart/AddItem
-        // Agrega un producto al carrito
         [HttpPost]
-        public ActionResult AddItem(int idProducto, int cantidad = 1) // idProducto en camelCase por Convención MVC
-        {
-            if (cantidad <= 0)
+        public ActionResult AddItem(int idProducto, int cantidad = 1)
+        {
+            // 1. Buscamos el producto para ver su stock real en DB
+            var producto = _productoService.GetProductoConDetalles(idProducto);
+            if (producto == null || cantidad <= 0)
             {
+                if (Request.IsAjaxRequest()) return Json(new { success = false, message = "Producto no encontrado." });
+                return HttpNotFound();
+            }
+
+            // 2. Obtenemos lo que ya hay en el carrito
+            var cartItems = GetCartFromSession();
+            int cantidadActualEnCarrito = cartItems.ContainsKey(idProducto) ? cartItems[idProducto] : 0;
+
+            // 3. VALIDACIÓN CRÍTICA: ¿Supera el stock disponible?
+            if (cantidadActualEnCarrito + cantidad > producto.Stock)
+            {
+                string msgError = $"No puedes agregar más. Stock disponible: {producto.Stock}. Ya tienes {cantidadActualEnCarrito} en el carrito.";
+
+                if (Request.IsAjaxRequest())
+                    return Json(new { success = false, message = msgError });
+
+                TempData["ErrorMessage"] = msgError;
                 return RedirectToAction("Index", "Producto");
             }
 
-            Dictionary<int, int> cartItems =
-              Session[SessionCartKey] as Dictionary<int, int> ?? new Dictionary<int, int>();
-
+            // 4. Si pasa la validación, actualizamos la sesión
             if (cartItems.ContainsKey(idProducto))
-            {
                 cartItems[idProducto] += cantidad;
-            }
             else
-            {
                 cartItems.Add(idProducto, cantidad);
-            }
 
             Session[SessionCartKey] = cartItems;
 
+            // 5. Calculamos el nuevo total para el badge
+            int totalCount = cartItems.Sum(x => x.Value);
+
+            // 6. Respuesta según el tipo de petición
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new
+                {
+                    success = true,
+                    count = totalCount,
+                    message = "¡Producto añadido correctamente!"
+                });
+            }
+
+            TempData["SuccessMessage"] = "Producto añadido al carrito.";
             return RedirectToAction("Index", "Producto");
         }
 
-        //
-        // POST: /ShoppingCart/RemoveItem
-        // Elimina completamente un producto del carrito
+        // NUEVO: POST: /ShoppingCart/UpdateQuantity
+        // Ajuste para permitir modificar cantidades directamente desde el carrito con validación de stock
         [HttpPost]
+        public ActionResult UpdateQuantity(int idProducto, int cantidad)
+        {
+            var producto = _productoService.GetProductoConDetalles(idProducto);
+
+            // 1. Validaciones básicas de existencia y cantidad positiva
+            if (producto == null || cantidad <= 0)
+            {
+                return Json(new { success = false, message = "Cantidad o producto no válido." });
+            }
+
+            // 2. Validación de Stock Real contra la nueva cantidad solicitada
+            if (cantidad > producto.Stock)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"Límite excedido. Solo hay {producto.Stock} unidades disponibles.",
+                    maxStock = producto.Stock
+                });
+            }
+
+            // 3. Actualizar la sesión
+            var cartItems = GetCartFromSession();
+            if (cartItems.ContainsKey(idProducto))
+            {
+                cartItems[idProducto] = cantidad;
+                Session[SessionCartKey] = cartItems;
+            }
+
+            // 4. Recalcular totales para refrescar la vista sin recargar
+            decimal nuevoSubtotal = producto.Precio * cantidad;
+            decimal nuevoTotalGeneral = cartItems.Sum(item => {
+                var p = _productoService.GetProductoConDetalles(item.Key);
+                return p.Precio * item.Value;
+            });
+
+            return Json(new
+            {
+                success = true,
+                nuevoSubtotal = nuevoSubtotal.ToString("C", _cultureCR),
+                nuevoTotal = nuevoTotalGeneral.ToString("C", _cultureCR),
+                cartCount = cartItems.Sum(x => x.Value),
+                message = "Cantidad actualizada."
+            });
+        }
+
+        // POST: /ShoppingCart/RemoveItem
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult RemoveItem(int idProducto)
         {
-            Dictionary<int, int> cartItems = Session[SessionCartKey] as Dictionary<int, int>;
-
-            if (cartItems != null && cartItems.ContainsKey(idProducto))
+            var cartItems = GetCartFromSession();
+            if (cartItems.ContainsKey(idProducto))
             {
                 cartItems.Remove(idProducto);
                 Session[SessionCartKey] = cartItems;
             }
-
             return RedirectToAction("Index");
         }
 
-        // --- Método de Compra (RF3) ---
-
-        //
         // POST: /ShoppingCart/Checkout
-        // Procesa la compra y registra la orden
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Checkout()
         {
-            Dictionary<int, int> cartItems = Session[SessionCartKey] as Dictionary<int, int>;
-
-            // ... (Validaciones de carrito vacío y usuario, no requieren ajuste)
-
-            if (cartItems == null || !cartItems.Any())
+            var cartItems = GetCartFromSession();
+            if (cartItems == null || !cartItems.Any())
             {
-                ModelState.AddModelError("", "El carrito de compras está vacío.");
-                // Necesitamos llamar a Index() para obtener el ViewModel, o replicar la lógica aquí
-                // Para ser más limpios, redirigimos a Index GET si hay un error:
-                TempData["ErrorMessage"] = "El carrito de compras está vacío.";
+                TempData["ErrorMessage"] = "El carrito está vacío.";
                 return RedirectToAction("Index");
             }
-            // Obtener el ID del usuario actual
-            string userEmail = User.Identity.Name;
 
-            if (string.IsNullOrEmpty(userEmail))
-            {
-                return RedirectToAction("LogOff", "Account");
-            }
-
-            var usuario = _usuarioService.GetUsuarioByEmail(userEmail);
-
-            if (usuario == null)
-            {
-                return RedirectToAction("LogOff", "Account");
-            }
-
-            int idUsuario = usuario.Id;
+            var usuario = _usuarioService.GetUsuarioByEmail(User.Identity.Name);
+            if (usuario == null) return RedirectToAction("Login", "User");
 
             try
             {
-                // Delegar el proceso transaccional al Servicio (RF3)
-                OrdenDto nuevaOrden = _ordenService.ProcesarCompra(idUsuario, cartItems);
+                // Procesar la compra
+                OrdenDto nuevaOrden = _ordenService.ProcesarCompra(usuario.Id, cartItems);
 
-                // Limpiar el carrito de la sesión
-                Session[SessionCartKey] = null;
+                // Limpiar carrito
+                Session[SessionCartKey] = null;
 
-                // Redirigir a la confirmación de la orden
-                return RedirectToAction("Confirmation", new { id = nuevaOrden.Id });
+                return RedirectToAction("Confirmation", new { id = nuevaOrden.Id });
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                // Si ocurre un error de stock o lógica de negocio
-                ModelState.AddModelError("", ex.Message);
-                // Debe llamar a Index() para obtener el ViewModel correcto
-                return Index(); // Llamar a Index GET para que la vista reciba el ViewModel correcto con el error
-            }
-            catch (Exception)
-            {
-                ModelState.AddModelError("", "Ocurrió un error inesperado al procesar la compra.");
-                return Index(); // Llamar a Index GET
-            }
+                TempData["ErrorMessage"] = "Error al procesar: " + ex.Message;
+                return RedirectToAction("Index");
+            }
         }
 
-        //
-        // GET: /ShoppingCart/Confirmation/5
         public ActionResult Confirmation(int id)
         {
             var orden = _ordenService.GetOrdenById(id);
+            var usuario = _usuarioService.GetUsuarioByEmail(User.Identity.Name);
 
-            string userEmail = User.Identity.Name;
-            var usuario = _usuarioService.GetUsuarioByEmail(userEmail);
-            int idUsuarioActual = usuario?.Id ?? 0;
-
-            // Validar propiedad de la orden
-            if (orden == null || orden.IdUsuario != idUsuarioActual) // Suponiendo que OrdenDto tiene IdUsuario
-            {
+            if (orden == null || (usuario != null && orden.IdUsuario != usuario.Id))
+            {
                 return HttpNotFound();
             }
 
             return View(orden);
+        }
+
+        // Auxiliar para no repetir código de sesión
+        private Dictionary<int, int> GetCartFromSession()
+        {
+            return Session[SessionCartKey] as Dictionary<int, int> ?? new Dictionary<int, int>();
+        }
+
+        // Nuevo: Para que el _LoginPartial obtenga el conteo vía JS
+        [ChildActionOnly]
+        public int GetCartCount()
+        {
+            var cart = GetCartFromSession();
+            return cart.Sum(x => x.Value);
         }
     }
 }

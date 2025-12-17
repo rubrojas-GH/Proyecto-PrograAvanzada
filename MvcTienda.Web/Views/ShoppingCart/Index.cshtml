@@ -1,108 +1,251 @@
 ﻿@using MvcTienda.Web.Models
-@using System.Web.Mvc.Html
-@using System.Linq
 @model List<CarritoItemViewModel>
 
 @{
-    ViewBag.Title = "Carrito de Compras";
-
-    // Cálculo del total general basado en los subtotales de los ítems
+    ViewBag.Title = "Mi Carrito de Compras";
     decimal totalGeneral = Model?.Sum(item => item.Subtotal) ?? 0;
+    var culture = new System.Globalization.CultureInfo("es-CR");
 }
 
-<h2>@ViewBag.Title</h2>
-<hr />
-
-@* Mensajes de error (ej. stock insuficiente, carrito vacío) *@
-@if (Html.ViewData.ModelState.Any(x => x.Value.Errors.Any()))
-{
-    <div class="alert alert-danger">
-        <h4>Error al procesar la compra:</h4>
-        @Html.ValidationSummary(false, "", new { @class = "text-danger" })
-    </div>
-}
-
-@if (Model == null || !Model.Any())
-{
-    <div class="alert alert-info">
-        <i class="glyphicon glyphicon-shopping-cart"></i> Tu carrito de compras está vacío.
-    </div>
-    <p>@Html.ActionLink("Ir al Catálogo", "Index", "Producto", null, new { @class = "btn btn-default" })</p>
-}
-else
-{
-<div class="row">
-    <div class="col-md-8">
-        <h4>Productos en tu Carrito</h4>
-        <table class="table table-striped table-hover">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th style="width: 150px;">Precio Unitario</th>
-                    <th style="width: 150px;">Cantidad</th>
-                    <th>Subtotal</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            @Html.ActionLink(item.NombreProducto, "Details", "Producto", new { id = item.IdProducto }, null)
-                        </td>
-                        <td>@item.PrecioUnitario.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
-
-                        @* -- Columna de Cantidad -- *@
-                        <td>
-                            <p class="form-control-static">@item.Cantidad</p>
-                        </td>
-
-                        <td>@item.Subtotal.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
-
-                        @* -- Botón para Eliminar (POST: /ShoppingCart/RemoveItem) -- *@
-
-                        <td>
-                            @using (Html.BeginForm("RemoveItem", "ShoppingCart", FormMethod.Post, new { style = "display:inline;" }))
-                            {
-                                @Html.AntiForgeryToken()
-                                @Html.Hidden("idProducto", item.IdProducto)
-                                <button type="submit" class="btn btn-xs btn-danger" title="Eliminar Producto" onclick="return confirm('¿Desea eliminar este producto del carrito?');">
-                                    <i class="glyphicon glyphicon-trash"></i>
-                                </button>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <p>@Html.ActionLink("← Seguir Comprando", "Index", "Producto", null, new { @class = "btn btn-default" })</p>
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-cart-fill text-info fs-2 me-3"></i>
+        <h2 class="fw-bold mb-0">@ViewBag.Title</h2>
     </div>
 
-    @* -- COLUMNA DERECHA: RESUMEN Y CHECKOUT (RF3) -- *@
-    <div class="col-md-4">
-        <div class="panel panel-success">
-            <div class="panel-heading">
-                <h4 class="panel-title">Resumen de la Orden</h4>
+    @* Manejo de Alertas de Error (TempData o ModelState) *@
+    <div id="alert-container">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <div>@TempData["ErrorMessage"]</div>
             </div>
-            <div class="panel-body">
-                <p>Subtotal de productos:</p>
-                <h3 class="text-success text-right">@totalGeneral.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h3>
+        }
+    </div>
 
-                <hr />
-
-                @* Formulario para el Checkout (POST: /ShoppingCart/Checkout) *@
-                @using (Html.BeginForm("Checkout", "ShoppingCart", FormMethod.Post))
-                {
-                    @Html.AntiForgeryToken()
-                    <p class="text-muted">Al presionar "Confirmar Compra", se procesará el pago y se descontará el inventario.</p>
-                    <button type="submit" class="btn btn-block btn-lg btn-success">
-                        <i class="glyphicon glyphicon-check"></i> Confirmar Compra
-                    </button>
-                }
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-4 text-center py-5">
+            <div class="card-body">
+                <div class="mb-4">
+                    <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-secondary">Tu carrito está vacío</h4>
+                <p class="text-muted mb-4">Parece que aún no has añadido nada a tu bolsa de compras.</p>
+                <a href="@Url.Action("Index", "Producto")" class="btn btn-info text-white px-4 fw-bold">
+                    <i class="bi bi-shop me-2"></i>Ir al Catálogo
+                </a>
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @* COLUMNA IZQUIERDA: LISTA DE PRODUCTOS *@
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3">Producto</th>
+                                    <th class="py-3">Precio</th>
+                                    <th class="py-3 text-center" style="width: 140px;">Cant.</th>
+                                    <th class="py-3">Subtotal</th>
+                                    <th class="py-3 pe-4 text-end"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    @* Agregamos un ID a la fila para identificarla en JS *@
+                                    <tr id="row-@item.IdProducto">
+                                        <td class="ps-4 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                    <i class="bi bi-box-seam text-secondary"></i>
+                                                </div>
+                                                <div>
+                                                    <a href="@Url.Action("Details", "Producto", new { id = item.IdProducto })" class="text-decoration-none fw-bold text-dark">
+                                                        @item.NombreProducto
+                                                    </a>
+                                                    @* Agregamos span para actualizar el stock dinámicamente si fuera necesario *@
+                                                    <div class="small text-muted">Stock: <span class="stock-disponible">@item.StockDisponible</span></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@item.PrecioUnitario.ToString("C", culture)</td>
+                                        <td class="text-center">
+                                            @* Ajuste: Cambiamos el badge por un input editable *@
+                                            <input type="number"
+                                                   class="form-control form-control-sm mx-auto txt-cantidad"
+                                                   style="width: 70px;"
+                                                   value="@item.Cantidad"
+                                                   min="1"
+                                                   max="@item.StockDisponible"
+                                                   data-id="@item.IdProducto" />
+                                        </td>
+                                        @* Agregamos clase para actualizar el subtotal con JS *@
+                                        <td class="fw-bold text-dark subtotal-valor">@item.Subtotal.ToString("C", culture)</td>
+                                        <td class="pe-4 text-end">
+                                            @using (Html.BeginForm("RemoveItem", "ShoppingCart", FormMethod.Post))
+                                            {
+                                                @Html.AntiForgeryToken()
+                                                @Html.Hidden("idProducto", item.IdProducto)
+                                                <button type="submit" class="btn btn-link text-danger p-0" title="Eliminar" onclick="return confirm('¿Quitar este producto?');">
+                                                    <i class="bi bi-trash3 fs-5"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="@Url.Action("Index", "Producto")" class="text-decoration-none text-info fw-bold">
+                        <i class="bi bi-arrow-left me-1"></i> Seguir comprando
+                    </a>
+                </div>
+            </div>
+
+            @* COLUMNA DERECHA: RESUMEN *@
+            <div class="col-lg-4">
+                <div class="card shadow border-0 rounded-4 sticky-top" style="top: 20px;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-4">Resumen de Compra</h5>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal</span>
+                            @* Clase resumen-subtotal para JS *@
+                            <span class="resumen-subtotal">@totalGeneral.ToString("C", culture)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Envío</span>
+                            <span class="text-success fw-bold">Gratis</span>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <span class="h5 fw-bold mb-0">Total</span>
+                            @* Clase resumen-total para JS *@
+                            <span class="h4 fw-bold text-info mb-0 resumen-total">@totalGeneral.ToString("C", culture)</span>
+                        </div>
+
+                        @using (Html.BeginForm("Checkout", "ShoppingCart", FormMethod.Post))
+                        {
+                            @Html.AntiForgeryToken()
+                            <p class="x-small text-muted mb-3 text-center">
+                                <i class="bi bi-shield-check me-1"></i> Transacción segura y protegida.
+                            </p>
+                            <button type="submit" class="btn btn-info text-white btn-lg w-100 py-3 fw-bold shadow-sm">
+                                Confirmar Compra <i class="bi bi-chevron-right ms-2 small"></i>
+                            </button>
+                        }
+
+                        <div class="mt-4 text-center">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" height="20" class="me-2 opacity-50" alt="Paypal">
+                            <i class="bi bi-credit-card text-muted opacity-50 fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Escuchar cambios en los inputs de cantidad
+            $('.txt-cantidad').on('change', function () {
+                var $input = $(this);
+                var idProd = $input.data('id');
+                var nuevaCant = $input.val();
+                var $fila = $('#row-' + idProd);
+
+                // Evitar valores menores a 1 manualmente
+                if (nuevaCant < 1) {
+                    $input.val(1);
+                    nuevaCant = 1;
+                }
+
+                $.ajax({
+url: '@Url.Action("UpdateQuantity", "ShoppingCart")',
+    type: 'POST',
+    data: {
+        idProducto: idProd,
+        cantidad: nuevaCant,
+        // ESTA ES LA LÍNEA CLAVE: extrae el token generado por @Html.AntiForgeryToken()
+        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+    },
+                    success: function (response) {
+                        if (response.success) {
+                            // 1. Actualizar subtotal de la fila
+                            $fila.find('.subtotal-valor').text(response.nuevoSubtotal);
+
+                            // 2. Actualizar resumen lateral
+                            $('.resumen-subtotal').text(response.nuevoTotal);
+                            $('.resumen-total').text(response.nuevoTotal);
+
+                            // 3. Actualizar badge del carrito en el navbar (si existe)
+                            $('#cart-count').text(response.cartCount);
+
+                            // Limpiar alertas previas si la validación fue exitosa
+                            $('#alert-container').empty();
+                        } else {
+                            // 4. Manejo de error de stock
+                            mostrarError(response.message);
+
+                            // Si el servidor nos dice el máximo real, lo reseteamos en el input
+                            if (response.maxStock !== undefined) {
+                                $input.val(response.maxStock);
+                            }
+                        }
+                    },
+                    error: function () {
+                        mostrarError("No se pudo conectar con el servidor para actualizar la cantidad.");
+                    }
+                });
+            });
+
+            function mostrarError(mensaje) {
+                var html = '<div class="alert alert-warning border-0 shadow-sm d-flex align-items-center alert-dismissible fade show" role="alert">' +
+                           '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+                           '<div>' + mensaje + '</div>' +
+                           '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                           '</div>';
+                $('#alert-container').html(html);
+            }
+        });
+    </script>
 }
+
+<style>
+    .x-small {
+        font-size: 0.75rem;
+    }
+
+    .table th {
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #6c757d;
+    }
+
+    /* Estilo para el input de cantidad */
+    .txt-cantidad {
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        transition: border-color 0.2s;
+    }
+
+        .txt-cantidad:focus {
+            border-color: #0dcaf0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+        }
+</style>

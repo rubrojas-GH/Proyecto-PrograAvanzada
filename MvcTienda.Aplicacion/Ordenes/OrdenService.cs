@@ -42,7 +42,7 @@ namespace MvcTienda.Aplicacion.Ordenes
                 int cantidadRequerida = item.Value;
 
                 // Obtener el producto para verificar stock y precio
-                // 🚨 AJUSTE: El repositorio debe devolver el producto con los datos necesarios (incluyendo nombre para el DTO).
+                // El repositorio debe devolver el producto con los datos necesarios (incluyendo nombre para el DTO).
                 var producto = _productoRepository.GetProductoById(idProducto);
 
                 if (producto == null || producto.estadoProducto == false)
@@ -142,7 +142,7 @@ namespace MvcTienda.Aplicacion.Ordenes
                 NombreUsuario = nombreUsuario,
                 Fecha = orden.fecha,
                 Total = orden.total,
-                // AJUSTE: Mapeo de la colección de detalles de la orden
+                // Mapeo de la colección de detalles de la orden
                 Items = orden.DetallesOrden?
                     .Select(d => new OrdenItemDto
                     {

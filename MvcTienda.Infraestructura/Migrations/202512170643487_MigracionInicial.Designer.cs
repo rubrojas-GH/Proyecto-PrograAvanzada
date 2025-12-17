@@ -7,13 +7,13 @@ namespace MvcTienda.Infraestructura.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class InitialCreation : IMigrationMetadata
+    public sealed partial class MigracionInicial : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(InitialCreation));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(MigracionInicial));
         
         string IMigrationMetadata.Id
         {
-            get { return "202512152246102_InitialCreation"; }
+            get { return "202512170643487_MigracionInicial"; }
         }
         
         string IMigrationMetadata.Source

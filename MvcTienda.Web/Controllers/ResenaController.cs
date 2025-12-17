@@ -58,8 +58,7 @@ namespace MvcTienda.Web.Controllers
 
             if (usuario == null)
             {
-                // Debería ser capturado por [Authorize], pero se deja como verificación extra
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "User");
             }
 
             if (ModelState.IsValid)

@@ -31,7 +31,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var orden in Model.OrderByDescending(o => o.Fecha)) // 🚨 AJUSTE: Usar orden.Fecha
+                @foreach (var orden in Model.OrderByDescending(o => o.Fecha))
                 {
                     <tr>
                         <td>#@orden.Id</td>
@@ -46,7 +46,6 @@
 
                     @* Fila de Detalles Oculta (Colapsable) *@
                     <tr class="collapse" id="details-@orden.Id">
-                        // 🚨 AJUSTE: Usar orden.Id
                         <td colspan="4">
                             <table class="table table-condensed" style="background-color: #f9f9f9;">
                                 <thead>
@@ -61,10 +60,10 @@
                                     @foreach (var detalle in orden.Items)
                                     {
                                         <tr>
-                                            <td>@(detalle.NombreProducto ?? "Producto Eliminado")</td> // 🚨 AJUSTE: Usar detalle.NombreProducto
-                                            <td>@detalle.Cantidad</td> // 🚨 AJUSTE: Usar detalle.Cantidad
-                                            <td>@detalle.PrecioUnitario.ToString("C", currencyCulture)</td> // 🚨 AJUSTE: Usar detalle.PrecioUnitario
-                                            <td>@detalle.Subtotal.ToString("C", currencyCulture)</td> // 🚨 AJUSTE: Usar detalle.Subtotal
+                                            <td>@(detalle.NombreProducto ?? "Producto Eliminado")</td>
+                                            <td>@detalle.Cantidad</td>
+                                            <td>@detalle.PrecioUnitario.ToString("C", currencyCulture)</td>
+                                            <td>@detalle.Subtotal.ToString("C", currencyCulture)</td>
                                         </tr>
                                     }
                                 </tbody>

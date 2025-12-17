@@ -1,0 +1,229 @@
+﻿@model MvcTienda.Web.Models.PerfilViewModel
+@{
+    ViewBag.Title = "Mi Perfil de Usuario";
+    var currencyCulture = new System.Globalization.CultureInfo("es-CR");
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            @* Alertas de Feedback *@
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4 border-0" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4 border-0" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card shadow-lg border-0 overflow-hidden">
+                <div class="row g-0">
+                    @* Lado Izquierdo: Resumen Visual *@
+                    <div class="col-md-4 bg-dark text-white text-center p-5 d-flex flex-column align-items-center justify-content-center">
+                        <div class="position-relative mb-4">
+                            <div class="rounded-circle bg-info shadow-lg d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                <i class="bi bi-person-badge text-white" style="font-size: 4rem;"></i>
+                            </div>
+                            <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success border border-dark border-3 p-2">
+                                <span class="visually-hidden">Online</span>
+                            </span>
+                        </div>
+                        <h4 class="fw-bold mb-1">@Model.Nombre</h4>
+                        <span class="badge bg-outline-info text-info border border-info px-3 mb-3">@Model.Rol</span>
+                        <p class="small text-white-50">Acceso Nivel: @Model.Rol</p>
+                        <p class="text-muted x-small">@DateTime.Now.ToString("dd MMMM yyyy")</p>
+                    </div>
+
+                    @* Lado Derecho: Contenido Dinámico *@
+                    <div class="col-md-8 p-4 bg-white">
+                        <ul class="nav nav-tabs border-0 mb-4 bg-light p-2 rounded-3" id="profileTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active border-0 fw-bold px-4" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-pane" type="button">
+                                    <i class="bi bi-person-lines-fill me-2"></i>Mis Datos
+                                </button>
+                            </li>
+                            @if (User.IsInRole("Asociado"))
+                            {
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link border-0 fw-bold px-4 text-secondary" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-pane" type="button">
+                                        <i class="bi bi-bag-check-fill me-2"></i>Mis Pedidos
+                                    </button>
+                                </li>
+                            }
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link border-0 fw-bold px-4 text-secondary" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-pane" type="button">
+                                    <i class="bi bi-shield-lock-fill me-2"></i>Seguridad
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="myTabContent">
+
+                            @* Panel 1: Mis Datos *@
+                            <div class="tab-pane fade show active" id="info-pane" role="tabpanel">
+                                @using (Html.BeginForm("ActualizarNombre", "Perfil", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label text-muted fw-bold small text-uppercase">Nombre Completo</label>
+                                            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control border-secondary-subtle p-2", placeholder = "Tu nombre" })
+                                            @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger small" })
+                                        </div>
+                                        <div class="col-md-12">
+                                            <label class="form-label text-muted fw-bold small text-uppercase">Correo Electrónico</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-secondary-subtle text-muted"><i class="bi bi-envelope"></i></span>
+                                                <input type="email" class="form-control bg-light border-secondary-subtle" value="@Model.Email" readonly disabled>
+                                            </div>
+                                            <div class="form-text x-small">El correo no puede ser modificado.</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-top">
+                                        <button type="submit" class="btn btn-dark px-4 shadow-sm">
+                                            <i class="bi bi-check2-circle me-2"></i>Guardar Cambios
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+
+                            @* Panel 2: Historial de Pedidos (Solo Asociados) *@
+                            @if (User.IsInRole("Asociado"))
+                            {
+                                <div class="tab-pane fade" id="orders-pane" role="tabpanel">
+                                    <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-clock-history me-2"></i>Historial de Compras</h5>
+
+                                    @if (Model.MisOrdenes == null || !Model.MisOrdenes.Any())
+                                    {
+                                        <div class="text-center py-5 border rounded-3 bg-light bg-opacity-50">
+                                            <i class="bi bi-cart-x text-muted opacity-50" style="font-size: 3rem;"></i>
+                                            <p class="text-muted mt-3">No hemos encontrado órdenes registradas.</p>
+                                            <a href="@Url.Action("Index", "Producto")" class="btn btn-info btn-sm text-white px-4 rounded-pill">Ir a la Tienda</a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="table-responsive">
+                                            <table class="table table-hover align-middle border-0">
+                                                <thead class="bg-light">
+                                                    <tr class="small text-muted text-uppercase">
+                                                        <th class="border-0"># Orden</th>
+                                                        <th class="border-0 text-center">Fecha</th>
+                                                        <th class="border-0 text-end">Total</th>
+                                                        <th class="border-0 text-center">Acción</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var orden in Model.MisOrdenes)
+                                                    {
+                                                        <tr>
+                                                            <td class="fw-bold text-info">#@orden.Id</td>
+                                                            <td class="text-center small">@orden.Fecha.ToString("dd/MM/yyyy")</td>
+                                                            <td class="text-end fw-bold">@orden.Total.ToString("C", currencyCulture)</td>
+                                                            <td class="text-center">
+                                                                <a href="@Url.Action("Confirmation", "ShoppingCart", new { id = orden.Id })" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-sm">
+                                                                    <i class="bi bi-eye"></i> Detalle
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @* Panel 3: Seguridad *@
+                            <div class="tab-pane fade" id="security-pane" role="tabpanel">
+                                @using (Html.BeginForm("CambiarPassword", "Perfil", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold small text-uppercase">Contraseña Actual</label>
+                                            @Html.PasswordFor(m => m.OldPassword, new { @class = "form-control border-secondary-subtle shadow-sm", placeholder = "Clave actual" })
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small text-uppercase text-primary">Nueva Contraseña</label>
+                                            @Html.PasswordFor(m => m.NewPassword, new { @class = "form-control border-primary-subtle shadow-sm", placeholder = "Mín. 6 caracteres" })
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small text-uppercase text-primary">Confirmar</label>
+                                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control border-primary-subtle shadow-sm", placeholder = "Repite la clave" })
+                                        </div>
+                                        <div class="col-12">
+                                            @Html.ValidationMessageFor(m => m.NewPassword, "", new { @class = "text-danger small" })
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-top">
+                                        <button type="submit" class="btn btn-primary px-4 shadow">
+                                            <i class="bi bi-shield-check me-2"></i>Actualizar Contraseña
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Index", "Home")" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Volver a la página principal
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $(document).ready(function () {
+            // Detectar si la URL contiene ?section=orders para activar la pestaña automáticamente
+            const urlParams = new URLSearchParams(window.location.search);
+            const section = urlParams.get('section');
+
+            if (section === 'orders') {
+                const triggerEl = document.querySelector('#orders-tab');
+                if (triggerEl) {
+                    const tabTrigger = new bootstrap.Tab(triggerEl);
+                    tabTrigger.show();
+                }
+            }
+        });
+    </script>
+}
+
+<style>
+    .x-small {
+        font-size: 0.75rem;
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: #ffffff !important;
+        color: #0dcaf0 !important;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-control:focus {
+        border-color: #0dcaf0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(13, 202, 240, 0.05);
+        transition: background-color 0.3s ease;
+    }
+</style>

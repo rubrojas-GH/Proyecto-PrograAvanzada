@@ -1,42 +1,81 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Mi aplicación ASP.NET</title>
+    <title>@ViewBag.Title - Tienda Bazar</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    @* Carga de iconos global *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .navbar {
+            border-bottom: 3px solid #0dcaf0;
+        }
 
+        .dropdown-menu {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .nav-link:hover {
+            color: #0dcaf0 !important;
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
         <div class="container">
-            @Html.ActionLink("Nombre de la aplicación", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Alternar navegación" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
+            <a class="navbar-brand fw-bold" href="@Url.Action("Index", "Home")">
+                <i class="bi bi-shop-window text-info me-2"></i>Tienda Bazar
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Inicio", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Acerca de", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contacto", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Home")">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Producto")">Tienda</a>
+                    </li>
+
+                    @if (Request.IsAuthenticated && User.IsInRole("Administrador"))
+                    {
+                        <li class="nav-item dropdown">
+                            @* IMPORTANTE: data-bs-toggle es para Bootstrap 5 *@
+                            <a class="nav-link dropdown-toggle text-info fw-bold" href="#" id="dropMante"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear-fill me-1"></i>Mantenimiento
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark shadow-lg mt-2" aria-labelledby="dropMante">
+                                <li><h6 class="dropdown-header opacity-50">GESTIÓN DE INVENTARIO</h6></li>
+                                <li><a class="dropdown-item" href="@Url.Action("AdminIndex", "Producto")"><i class="bi bi-box-seam me-2"></i>Productos</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Categoria")"><i class="bi bi-grid me-2"></i>Categorías</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header opacity-50">SISTEMA</h6></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "User")"><i class="bi bi-people me-2"></i>Usuarios</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Moderation", "Resena")"><i class="bi bi-chat-left-text me-2"></i>Reseñas</a></li>
+                            </ul>
+                        </li>
+                    }
                 </ul>
-                 @Html.Partial("_LoginPartial")
+                @Html.Partial("_LoginPartial")
             </div>
         </div>
     </nav>
-    <div class="container body-content">
+
+    <div class="container body-content mt-4">
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - Mi aplicación ASP.NET</p>
+        <footer class="mt-5 py-4 text-center text-muted border-top">
+            <p>&copy; @DateTime.Now.Year - <span class="fw-bold text-dark">Tienda Bazar</span></p>
         </footer>
     </div>
 
     @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

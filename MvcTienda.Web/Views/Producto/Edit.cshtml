@@ -13,93 +13,108 @@
 {
     @Html.AntiForgeryToken()
 
-    <div class="form-horizontal">
-        <h4>Modificar Datos del Producto</h4>
-        <hr />
+<div class="form-horizontal">
+    <h4>Modificar Datos del Producto</h4>
+    <hr />
 
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-        @* CAMPO OCULTO: ID del Producto (Obligatorio para la edición) *@
-        @Html.HiddenFor(model => model.Id)
+    @* CAMPO OCULTO: ID del Producto (Obligatorio para la edición) *@
+    @Html.HiddenFor(model => model.Id)
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.TextAreaFor(model => model.Descripcion, new { @class = "form-control", rows = 4 })
-                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextAreaFor(model => model.Descripcion, new { @class = "form-control", rows = 4 })
+            @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Precio, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Precio, new { htmlAttributes = new { @class = "form-control", type = "number", step = "0.01", min = "0.01" } })
-                @Html.ValidationMessageFor(model => model.Precio, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.IdCategoria, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @* DropDownListFor selecciona automáticamente el valor de Model.IdCategoria *@
+            @Html.DropDownListFor(
+                model => model.IdCategoria,
+                (SelectList)ViewBag.CategoriaList, // Usamos la lista SelectList creada en el controlador
+                "--- Seleccione Categoría ---",    // Opción por defecto (aunque el valor actual debería estar seleccionado)
+                new { @class = "form-control" }
+            )
+            @Html.ValidationMessageFor(model => model.IdCategoria, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Stock, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control", type = "number", min = "0" } })
-                @Html.ValidationMessageFor(model => model.Stock, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Precio, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @* Usamos type="text" pero le damos apariencia de número para evitar el bloqueo de comas/puntos *@
+            @Html.TextBoxFor(model => model.Precio, "{0:F2}", new { @class = "form-control", @inputmode = "decimal" })
+            @Html.ValidationMessageFor(model => model.Precio, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.EstadoProducto, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.CheckBoxFor(model => model.EstadoProducto)
-                    @Html.ValidationMessageFor(model => model.EstadoProducto, "", new { @class = "text-danger" })
-                    <span class="help-block">Marque para que el producto sea visible en el catálogo.</span>
-                </div>
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Stock, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control", type = "number", min = "0" } })
+            @Html.ValidationMessageFor(model => model.Stock, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <hr />
-
-        @* Sección de Gestión de Imágenes *@
-        <h4>Gestión de Imágenes</h4>
-        <div class="col-md-12">
-            <p class="text-info">Imágenes actuales del producto (se guardan como una lista de `ImagenProductoDto` anidada).</p>
-
-            <div class="row" style="margin-bottom: 15px;">
-                @if (Model.Imagenes != null && Model.Imagenes.Any())
-                {
-                    foreach (var imagen in Model.Imagenes)
-                    {
-                        <div class="col-xs-3 col-sm-2 text-center" style="margin-bottom: 10px;">
-                            <img src="@imagen.UrlImagen" style="width: 100px; height: 100px; object-fit: cover; margin: 5px;" class="img-thumbnail" />
-                            @* Nota: La eliminación de una imagen individual generalmente requiere una llamada Ajax o un formulario separado para eliminar por Id de Imagen *@
-                            <small class="text-muted">ID: @imagen.Id</small>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p class="col-md-12">No hay imágenes subidas para este producto.</p>
-                }
-            </div>
-
-            <label>Subir nuevas imágenes:</label>
-            <input type="file" name="fileUpload" multiple class="form-control" />
-            <span class="help-block">Las imágenes subidas se añadirán al conjunto actual.</span>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10 mt-4">
-                <input type="submit" value="Guardar Cambios" class="btn btn-success" />
-                @Html.ActionLink("Cancelar y Volver", "AdminIndex", null, new { @class = "btn btn-default" })
+    <div class="form-group">
+        @Html.LabelFor(model => model.EstadoProducto, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <div class="checkbox">
+                @Html.CheckBoxFor(model => model.EstadoProducto)
+                @Html.ValidationMessageFor(model => model.EstadoProducto, "", new { @class = "text-danger" })
+                <span class="help-block">Marque para que el producto sea visible en el catálogo.</span>
             </div>
         </div>
     </div>
+
+    <hr />
+
+    @* Sección de Gestión de Imágenes *@
+    <h4>Gestión de Imágenes</h4>
+    <div class="col-md-12">
+        <p class="text-info">Imágenes actuales del producto (se guardan como una lista de `ImagenProductoDto` anidada).</p>
+
+        <div class="row" style="margin-bottom: 15px;">
+            @if (Model.Imagenes != null && Model.Imagenes.Any())
+            {
+                foreach (var imagen in Model.Imagenes)
+                {
+                    <div class="col-xs-3 col-sm-2 text-center" style="margin-bottom: 10px;">
+                        <img src="@imagen.UrlImagen" style="width: 100px; height: 100px; object-fit: cover; margin: 5px;" class="img-thumbnail" />
+                        @* Nota: La eliminación de una imagen individual generalmente requiere una llamada Ajax o un formulario separado para eliminar por Id de Imagen *@
+                        <small class="text-muted">ID: @imagen.Id</small>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="col-md-12">No hay imágenes subidas para este producto.</p>
+            }
+        </div>
+
+        <label>Subir nuevas imágenes:</label>
+        <input type="file" name="fileUpload" multiple class="form-control" />
+        <span class="help-block">Las imágenes subidas se añadirán al conjunto actual.</span>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10 mt-4">
+            <input type="submit" value="Guardar Cambios" class="btn btn-success" />
+            @Html.ActionLink("Cancelar y Volver", "AdminIndex", null, new { @class = "btn btn-default" })
+        </div>
+    </div>
+</div>
 }

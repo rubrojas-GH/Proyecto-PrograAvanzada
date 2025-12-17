@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
-using Owin;
 using Microsoft.Owin.Security.Cookies;
-using Microsoft.AspNet.Identity; // Mantener solo para DefaultAuthenticationTypes
+using Owin;
+using System;
+using System.Web.Helpers;
+using System.Security.Claims;
 
 namespace MvcTienda.Web
 {
@@ -10,34 +12,25 @@ namespace MvcTienda.Web
     {
         public void ConfigureAuth(IAppBuilder app)
         {
-            // ELIMINAR Identity Contexts y Managers.
-            // app.CreatePerOwinContext(...)
-
-            // Permitir que la aplicación use una cookie para almacenar información del usuario.
+            // Configuración de la cookie de autenticación para nuestro sistema de usuarios
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
-                // El AuthenticationType debe coincidir con el tipo de autenticación que usarás.
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
 
-                // Ajustar la ruta de Login. 
-                // Asumiendo que tu controlador es 'User' y la acción es 'Login'.
+                // Ruta corregida para apuntar a tu controlador de usuarios
                 LoginPath = new PathString("/User/Login"),
 
-                // ELIMINAR el SecurityStampValidator, ya que depende de ASP.NET Identity.
-                // Provider = new CookieAuthenticationProvider { ... }
-
-                // Opcional: Configurar el tiempo de expiración
-                ExpireTimeSpan = TimeSpan.FromDays(7), // Ejemplo: Recordarme por 7 días
+                // Sesión persistente por 7 días
+                ExpireTimeSpan = TimeSpan.FromDays(7),
                 SlidingExpiration = true
             });
 
-            // Si no usas inicios de sesión externos, puedes eliminar estas líneas.
+            // Cookie necesaria para manejar estados de sesión externos si se requirieran
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
-            // app.UseTwoFactorSignInCookie(...)
-            // app.UseTwoFactorRememberBrowserCookie(...)
 
-            // Desactivar o eliminar proveedores de terceros si no se usan
-            // app.UseGoogleAuthentication(...)
+            // IMPORTANTE: Soluciona el error de "NameIdentifier" al usar Claims personalizados.
+            // Esto le indica al sistema que use el Email como identificador único para los tokens de seguridad.
+            AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.Email;
         }
     }
 }

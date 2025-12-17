@@ -13,70 +13,85 @@
 {
     @Html.AntiForgeryToken()
 
-    <div class="form-horizontal">
-        <h4>Datos del Producto</h4>
-        <hr />
+<div class="form-horizontal">
+    <h4>Datos del Producto</h4>
+    <hr />
 
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.TextAreaFor(model => model.Descripcion, new { @class = "form-control", rows = 4 })
-                @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextAreaFor(model => model.Descripcion, new { @class = "form-control", rows = 4 })
+            @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Precio, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Precio, new { htmlAttributes = new { @class = "form-control", type = "number", step = "0.01", min = "0.01" } })
-                @Html.ValidationMessageFor(model => model.Precio, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.IdCategoria, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @* Usamos DropDownListFor para enlazar la propiedad IdCategoria al valor seleccionado *@
+            @* Y usamos ViewBag.CategoriaList como fuente de datos *@
+            @Html.DropDownListFor(
+                     model => model.IdCategoria,
+                     (SelectList)ViewBag.CategoriaList, // Usamos la lista SelectList creada en el controlador
+                     "--- Seleccione Categoría ---",    // Opción por defecto
+                     new { @class = "form-control" }
+                 )
+            @Html.ValidationMessageFor(model => model.IdCategoria, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Stock, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control", type = "number", min = "0" } })
-                @Html.ValidationMessageFor(model => model.Stock, "", new { @class = "text-danger" })
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Precio, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Precio, new { htmlAttributes = new { @class = "form-control", type = "number", step = "0.01", min = "0.01" } })
+            @Html.ValidationMessageFor(model => model.Precio, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.EstadoProducto, htmlAttributes: new { @class = "control-label col-md-2" }) @* 👈 AJUSTE: EstadoProducto *@
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.CheckBoxFor(model => model.EstadoProducto) @* 👈 AJUSTE: EstadoProducto *@
-                    @Html.ValidationMessageFor(model => model.EstadoProducto, "", new { @class = "text-danger" }) @* 👈 AJUSTE: EstadoProducto *@
-                    <span class="help-block">Marque para que el producto sea visible en el catálogo.</span>
-                </div>
-            </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Stock, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Stock, new { htmlAttributes = new { @class = "form-control", type = "number", min = "0" } })
+            @Html.ValidationMessageFor(model => model.Stock, "", new { @class = "text-danger" })
         </div>
+    </div>
 
-        <hr />
-
-        <h4>Subir Imágenes (Opcional)</h4>
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="file" name="fileUpload" multiple class="form-control" />
-                <span class="help-block">Seleccione una o varias imágenes para el nuevo producto.</span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Guardar Producto" class="btn btn-success" />
-                @Html.ActionLink("Cancelar y Volver", "AdminIndex", null, new { @class = "btn btn-default" })
+    <div class="form-group">
+        @Html.LabelFor(model => model.EstadoProducto, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            <div class="checkbox">
+                @Html.CheckBoxFor(model => model.EstadoProducto)
+                @Html.ValidationMessageFor(model => model.EstadoProducto, "", new { @class = "text-danger" })
+                <span class="help-block">Marque para que el producto sea visible en el catálogo.</span>
             </div>
         </div>
     </div>
+
+    <hr />
+
+    <h4>Subir Imágenes (Opcional)</h4>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="file" name="fileUpload" multiple class="form-control" />
+            <span class="help-block">Seleccione una o varias imágenes para el nuevo producto.</span>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Guardar Producto" class="btn btn-success" />
+            @Html.ActionLink("Cancelar y Volver", "AdminIndex", null, new { @class = "btn btn-default" })
+        </div>
+    </div>
+</div>
 }

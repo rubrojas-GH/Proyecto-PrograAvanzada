@@ -2,6 +2,7 @@
 using MvcTienda.Domain.Entities;
 using MvcTienda.Domain.Repositories;
 using System;
+using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,20 +23,37 @@ namespace MvcTienda.Aplicacion.Productos
         // CATÁLOGO PÚBLICO
         // =========================
 
-        public IEnumerable<ProductoDto> GetCatalogoProductosActivos()
+        public IEnumerable<ProductoDto> GetCatalogoProductosActivos(int? categoriaId = null)
         {
-            return _productoRepository.GetAllProductos()
-                .Where(p => p.estadoProducto && p.stock > 0)
-                .Select(p => new ProductoDto
+            var query = _productoRepository.GetAll()
+                .Include(p => p.Imagenes)
+                .Include(p => p.Categoria)
+                .Where(p => p.estadoProducto == true); // 🟢 'estadoProducto' en minúscula
+
+            if (categoriaId.HasValue)
+            {
+                // 🟢 'idCategoria' en minúscula (como en tu entidad)
+                query = query.Where(p => p.idCategoria == categoriaId.Value);
+            }
+
+            return query.Select(p => new ProductoDto
+            {
+                // Lado Izquierdo = DTO (Mayúscula) | Lado Derecho = Entidad (Minúscula/Nombre largo)
+                Id = p.idProducto,
+                Nombre = p.nombreProducto,
+                Descripcion = p.descripcion,
+                Precio = p.precioProducto,
+                Stock = p.stock,
+                EstadoProducto = p.estadoProducto,
+                IdCategoria = p.idCategoria,
+                NombreCategoria = p.Categoria.nombreCategoria,
+
+                Imagenes = p.Imagenes.Select(i => new ImagenProductoDto
                 {
-                    Id = p.idProducto,
-                    Nombre = p.nombreProducto,
-                    Precio = p.precioProducto,
-                    Stock = p.stock,
-                    // Mapear el Nombre de la Categoría
-                    NombreCategoria = p.Categoria?.nombreCategoria
-                })
-                .ToList();
+                    Id = i.idImagen, // Revisa si en ImagenProducto.cs es idImagen o Id
+                    UrlImagen = i.urlImagen
+                }).ToList()
+            }).ToList();
         }
 
         public ProductoDto GetProductoConDetalles(int id)
@@ -56,7 +74,7 @@ namespace MvcTienda.Aplicacion.Productos
                 Id = producto.idProducto,
                 Nombre = producto.nombreProducto,
                 Descripcion = producto.descripcion,
-                Precio = producto.precioProducto,
+                Precio = Convert.ToDecimal(producto.precioProducto),
                 Stock = producto.stock,
                 EstadoProducto = producto.estadoProducto,
 

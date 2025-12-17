@@ -1,0 +1,53 @@
+﻿@model MvcTienda.Aplicacion.Categorias.CategoriaDto
+
+@{
+    ViewBag.Title = "Crear Categoría";
+}
+
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="panel panel-primary" style="margin-top: 30px;">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="glyphicon glyphicon-plus"></i> Nueva Categoría</h3>
+            </div>
+            <div class="panel-body">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-horizontal">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.NombreCategoria, "Nombre de la Categoría", htmlAttributes: new { @class = "control-label col-md-12", style = "text-align: left;" })
+                            <div class="col-md-12">
+                                @Html.EditorFor(model => model.NombreCategoria, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej: Electrónicos, Ropa, Hogar..." } })
+                                @Html.ValidationMessageFor(model => model.NombreCategoria, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="glyphicon glyphicon-save"></i> Guardar Categoría
+                                </button>
+                                @Html.ActionLink("Cancelar", "Index", null, new { @class = "btn btn-default" })
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="glyphicon glyphicon-info-sign"></i>
+            <strong>Nota:</strong> Procure no duplicar nombres de categorías para mantener el catálogo organizado.
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

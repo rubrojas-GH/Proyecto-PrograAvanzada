@@ -19,6 +19,8 @@ namespace MvcTienda.Aplicacion.Usuarios
         // Roles (para dropdowns)
         IEnumerable<string> GetAllRoles();
 
-
+        // Gestión de Perfil
+        void UpdateNombre(string email, string nuevoNombre);
+        void ChangePassword(string email, string oldPassword, string newPassword);
     }
 }

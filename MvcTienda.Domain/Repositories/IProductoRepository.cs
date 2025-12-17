@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
-using MvcTienda.Domain.Entities;
+﻿using MvcTienda.Domain.Entities;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MvcTienda.Domain.Repositories
 {
@@ -7,6 +8,8 @@ namespace MvcTienda.Domain.Repositories
     {
         Producto GetProductoById(int id);
         IEnumerable<Producto> GetAllProductos();
+
+        IQueryable<Producto> GetAll();
 
         void AddProducto(Producto producto);
         void UpdateProducto(Producto producto);

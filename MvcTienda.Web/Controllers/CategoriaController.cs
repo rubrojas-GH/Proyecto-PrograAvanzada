@@ -1,4 +1,5 @@
 ﻿using MvcTienda.Aplicacion.Categorias;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace MvcTienda.Web.Controllers
@@ -18,7 +19,10 @@ namespace MvcTienda.Web.Controllers
         // GET: Categoria
         public ActionResult Index()
         {
-            var categorias = _categoriaService.GetAllCategorias();
+            var categorias = _categoriaService.GetAllCategorias()
+                                    .OrderBy(c => c.IdCategoria) // Orden ascendente por ID
+                                    .ToList();
+
             return View(categorias);
         }
 

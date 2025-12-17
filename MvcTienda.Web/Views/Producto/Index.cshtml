@@ -2,99 +2,187 @@
 @model IEnumerable<ProductoDto>
 
 @{
-    ViewBag.Title = "Catálogo de Productos";
+    ViewBag.Title = "Nuestra Tienda";
+    var categorias = (IEnumerable<MvcTienda.Aplicacion.Categorias.CategoriaDto>)ViewBag.Categorias;
+    var categoriaActualId = (int?)ViewBag.CategoriaActualId;
 }
 
-<div class="row">
-    <div class="col-md-12">
-        <h2>Catálogo de Productos Disponibles</h2>
-        <p class="lead">Explora nuestra selección de productos. ¡Recuerda que solo Asociados pueden realizar compras!</p>
-
-        @* Verificar si el usuario es Administrador para darle un enlace al panel de gestión (RF2) *@
-        @if (User.IsInRole("Administrador"))
-        {
-            <div class="alert alert-info">
-                @Html.ActionLink("Ir a la Administración de Productos", "AdminIndex", "Producto", null, new { @class = "btn btn-info" })
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
+    <div id="cartToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-info-circle me-2" id="toastIcon"></i>
+                <span id="toastMessage"></span>
             </div>
-        }
-
-        @* Muestra mensajes de éxito (ej. después de añadir al carrito) *@
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-        }
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
     </div>
 </div>
 
-<hr />
+<div class="container mt-4">
+    @* Encabezado Dinámico *@
+    <div class="text-center mb-5">
+        <h2 class="display-6 fw-bold">Catálogo de Productos</h2>
+        <p class="text-muted mx-auto" style="max-width: 600px;">
+            Explora nuestra colección seleccionada. Inicia sesión para disfrutar de una compra segura como Asociado.
+        </p>
+    </div>
 
-<div class="row">
-    @if (!Model.Any())
-    {
-        <div class="col-md-12">
-            <div class="alert alert-warning">
-                No hay productos activos disponibles en este momento.
-            </div>
-        </div>
-    }
-
-    @foreach (var producto in Model)
-    {
-        <div class="col-lg-4 col-md-6 mb-4">
-            <div class="card h-100">
-
-                @{
-                    // Lógica para mostrar la primera imagen, si existe
-                    // Usamos la colección de Imagenes del DTO
-                    string imageUrl = producto.Imagenes != null && producto.Imagenes.Any()
-                                            ? producto.Imagenes.First().UrlImagen // 👈 Usar UrlImagen del ImagenProductoDto
-                                            : "/Content/images/placeholder.jpg";
-                }
-                <a href="@Url.Action("Details", new { id = producto.Id })">
-                    // 👈 Usar Id del DTO
-                    <img class="card-img-top" src="@imageUrl" alt="@producto.Nombre" style="max-height: 200px; width: 100%; object-fit: cover;"> // 👈 Usar Nombre del DTO
-                </a>
-
+    <div class="row">
+        @* Filtros Laterales *@
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
                 <div class="card-body">
-                    <h4 class="card-title">
-                        @Html.ActionLink(producto.Nombre, "Details", new { id = producto.Id }) // 👈 Usar Id y Nombre
-                    </h4>
+                    <h5 class="card-title fw-bold mb-3"><i class="bi bi-filter-left me-2"></i>Categorías</h5>
+                    <div class="list-group list-group-flush">
+                        <a href="@Url.Action("Index", "Producto")"
+                           class="list-group-item list-group-item-action border-0 rounded @(categoriaActualId == null ? "active bg-primary text-white" : "")">
+                            Todas las Categorías
+                        </a>
 
-                    @* Asume formato de moneda: $1,234.00 *@
-                    <h5>@producto.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h5> // 👈 Usar PrecioProducto del DTO
-
-                    <p class="card-text">
-                        Stock:
-                        @if (producto.Stock > 0) // 👈 Usar Stock del DTO
+                        @foreach (var cat in categorias)
                         {
-                            <span class="text-success">@producto.Stock en inventario</span>
+                            bool isActive = categoriaActualId == cat.IdCategoria;
+                            <a href="@Url.Action("Index", "Producto", new { categoriaId = cat.IdCategoria })"
+                               class="list-group-item list-group-item-action border-0 rounded @(isActive ? "active bg-primary text-white" : "")">
+                                @cat.NombreCategoria
+                            </a>
                         }
-                        else
-                        {
-                            <span class="text-danger">Agotado</span>
-                        }
-                    </p>
-                </div>
-
-                <div class="card-footer">
-                    @if (producto.Stock > 0 && User.IsInRole("Asociado"))
-                    {
-                        // Formulario POST para agregar un producto al carrito (RF3)
-                        using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "form-inline" }))
-                        {
-                            @Html.Hidden("idProducto", producto.Id) // 👈 Usar Id
-                            <input type="number" name="cantidad" value="1" min="1" max="@producto.Stock" class="form-control input-sm" style="width: 60px; margin-right: 5px;" />
-                            <button type="submit" class="btn btn-sm btn-primary">
-                                <i class="glyphicon glyphicon-shopping-cart"></i> Añadir
-                            </button>
-                        }
-                    }
-                    else if (producto.Stock > 0)
-                    {
-                        <span class="text-muted">Inicie sesión para comprar</span>
-                    }
+                    </div>
                 </div>
             </div>
         </div>
-    }
+
+        @* Listado de Productos *@
+        <div class="col-lg-9">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 bg-light rounded-3 shadow-sm">
+                    <i class="bi bi-search display-1 text-muted"></i>
+                    <p class="mt-3 lead">No encontramos productos en esta categoría.</p>
+                </div>
+            }
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                @foreach (var producto in Model)
+                {
+                    <div class="col">
+                        <div class="card h-100 border-0 shadow-sm transition-hover overflow-hidden">
+                            @* Imagen con enlace a detalles *@
+                            <div class="position-relative overflow-hidden" style="height: 220px;">
+                                <a href="@Url.Action("Details", new { id = producto.Id })">
+                                    <img src="@(producto.Imagenes?.FirstOrDefault()?.UrlImagen ?? "https://placehold.co/600x400")"
+                                         class="card-img-top h-100 w-100" style="object-fit: cover;" alt="@producto.Nombre">
+                                </a>
+                                @if (producto.Stock <= 0)
+                                {
+                                    <div class="position-absolute top-0 end-0 bg-danger text-white px-3 py-1 m-2 rounded-pill small fw-bold">Agotado</div>
+                                }
+                            </div>
+
+                            <div class="card-body">
+                                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">@producto.NombreCategoria</small>
+                                <h5 class="card-title mt-1 mb-2">@producto.Nombre</h5>
+                                <p class="text-primary fs-5 fw-bold mb-0">@producto.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</p>
+                                @* Mostramos el stock actual de la DB para referencia del usuario *@
+                                <small class="text-muted d-block mt-1">Disponibles: @producto.Stock</small>
+                            </div>
+
+                            <div class="card-footer bg-white border-0 pt-0 pb-3">
+                                @if (producto.Stock > 0 && User.IsInRole("Asociado"))
+                                {
+                                    @* Formulario con AJAX *@
+                                    using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "ajax-cart-form" }))
+                                    {
+                                        @Html.Hidden("idProducto", producto.Id)
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" name="cantidad" value="1" min="1" max="@producto.Stock" class="form-control" />
+                                            <button type="submit" class="btn btn-primary px-3">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Details", new { id = producto.Id })" class="btn btn-sm btn-outline-secondary w-100 rounded-pill">Ver Detalles</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Inicializamos el Toast de Bootstrap
+            var toastEl = document.getElementById('cartToast');
+            var cartToast = new bootstrap.Toast(toastEl, { delay: 3000 });
+
+            // Interceptamos el envío del formulario
+            $('.ajax-cart-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var $form = $(this);
+                var actionUrl = $form.attr('action');
+                var dataToSend = $form.serialize();
+
+                $.ajax({
+                    url: actionUrl,
+                    type: 'POST',
+                    data: dataToSend,
+                    success: function (response) {
+                        if (response.success) {
+                            // 1. ÉXITO: Actualizamos el número del carrito
+                            $('#cart-count').text(response.count);
+
+                            // 2. Animación de pulso en el icono
+                            $('#cart-count').addClass('animate-pulse');
+                            setTimeout(function () {
+                                $('#cart-count').removeClass('animate-pulse');
+                            }, 500);
+
+                            // 3. Mostramos Toast verde
+                            showNotification(response.message, 'bg-success');
+                        } else {
+                            // 4. ERROR (Stock insuficiente u otro): Mostramos Toast naranja
+                            showNotification(response.message, 'bg-warning text-dark');
+                        }
+                    },
+                    error: function () {
+                        showNotification("Error de conexión al procesar el carrito.", "bg-danger");
+                    }
+                });
+            });
+
+            // Función auxiliar para configurar y mostrar el Toast
+            function showNotification(message, cssClass) {
+                $('#cartToast').removeClass('bg-success bg-warning bg-danger text-dark').addClass(cssClass);
+                $('#toastMessage').text(message);
+                cartToast.show();
+            }
+        });
+    </script>
+
+    <style>
+        /* Animación para el numerito del carrito */
+        .animate-pulse {
+            transform: scale(1.4);
+            transition: transform 0.2s ease;
+        }
+
+        .transition-hover:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+
+        /* Estilo para que el toast resalte */
+        .toast-container {
+            top: 70px !important; /* Ajusta según la altura de tu navbar */
+        }
+    </style>
+}

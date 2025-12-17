@@ -1,4 +1,4 @@
-﻿using MvcTienda.Aplicacion.Common.Security;
+﻿using MvcTienda.Domain.Security;
 using MvcTienda.Domain.Entities;
 using MvcTienda.Domain.Repositories;
 using System;
@@ -113,6 +113,40 @@ namespace MvcTienda.Aplicacion.Usuarios
                 .GetAllRoles()
                 .Select(r => r.nombreRol)
                 .ToList();
+        }
+
+        // ============================
+        // GESTIÓN DE PERFIL
+        // ============================
+
+        public void UpdateNombre(string email, string nuevoNombre)
+        {
+            var usuario = _usuarioRepository.GetUsuarioByEmail(email);
+            if (usuario == null)
+                throw new InvalidOperationException("Usuario no encontrado.");
+
+            usuario.nombre = nuevoNombre;
+
+            // El repositorio ya sabe cómo guardar los cambios
+            _usuarioRepository.UpdateUsuario(usuario);
+        }
+
+        public void ChangePassword(string email, string oldPassword, string newPassword)
+        {
+            var usuario = _usuarioRepository.GetUsuarioByEmail(email);
+            if (usuario == null)
+                throw new InvalidOperationException("Usuario no encontrado.");
+
+            // 1. Verificar si la contraseña actual es correcta
+            if (!PasswordHasher.VerifyPassword(oldPassword, usuario.contrasena))
+            {
+                throw new Exception("La contraseña actual es incorrecta.");
+            }
+
+            // 2. Hashear la nueva contraseña y guardarla
+            usuario.contrasena = PasswordHasher.HashPassword(newPassword);
+
+            _usuarioRepository.UpdateUsuario(usuario);
         }
 
         // ============================

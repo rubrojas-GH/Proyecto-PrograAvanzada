@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace MvcTienda.Aplicacion.Common.Security
+namespace MvcTienda.Domain.Security
 {
     public static class PasswordHasher
     {

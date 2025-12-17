@@ -24,15 +24,18 @@ namespace MvcTienda.Infraestructura.Data
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            // --- Configuración de Llaves Compuestas (Diagrama Relacional) ---
-
-            // Configurar DetalleOrden para tener una Llave Primaria Compuesta (idOrden, idProducto)
+            // 1. Llave Primaria Compuesta para DetalleOrden
             modelBuilder.Entity<DetalleOrden>()
                 .HasKey(d => new { d.idOrden, d.idProducto })
-                // Ignorar la propiedad idDetalle ya que la PK es compuesta
                 .Ignore(d => d.idDetalleOrden);
 
-            // Opcional: Configurar nombres de tablas para coincidir con el diagrama relacional
+            // 2. Mapeo de nombres de tablas (Para seguir el estándar que iniciaste)
+            modelBuilder.Entity<Rol>().ToTable("ROLES");
+            modelBuilder.Entity<Usuario>().ToTable("USUARIOS");
+            modelBuilder.Entity<Producto>().ToTable("PRODUCTOS");
+            modelBuilder.Entity<Categoria>().ToTable("CATEGORIAS");
+            modelBuilder.Entity<Resena>().ToTable("RESENAS");
+            modelBuilder.Entity<ImagenProducto>().ToTable("IMAGENES_PRODUCTO");
             modelBuilder.Entity<Orden>().ToTable("ORDENES");
             modelBuilder.Entity<DetalleOrden>().ToTable("DETALLES_ORDEN");
 
