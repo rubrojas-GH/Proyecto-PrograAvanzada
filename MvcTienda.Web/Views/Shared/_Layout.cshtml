@@ -27,6 +27,28 @@
             color: #000 !important;
         }
     </style>
+    <style>
+        #global-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+        }
+
+        .loader-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(2px);
+        }
+
+        .loader-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow">
@@ -89,7 +111,41 @@
     @Scripts.Render("~/bundles/jquery")
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @* scripts personalizados *@
     <script src="~/Scripts/confirm-delete.js"></script>
+    <script src="~/Scripts/carrito-ajax.js"></script>
+
     @RenderSection("scripts", required: false)
+
+    <!-- GLOBAL LOADING OVERLAY -->
+    <div id="global-loader" class="d-none">
+        <div class="loader-backdrop"></div>
+        <div class="loader-content">
+            <div class="spinner-border text-info" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <div class="mt-2 text-info fw-bold">Procesando...</div>
+        </div>
+    </div>
+    <script>
+        $(function () {
+
+            // Spinner para AJAX
+            $(document).ajaxStart(function () {
+                $('#global-loader').removeClass('d-none');
+            });
+
+            $(document).ajaxStop(function () {
+                $('#global-loader').addClass('d-none');
+            });
+
+            // Spinner para formularios MVC
+            $('form').on('submit', function () {
+                $('#global-loader').removeClass('d-none');
+            });
+
+        });
+    </script>
 </body>
 </html>

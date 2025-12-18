@@ -46,7 +46,7 @@ namespace MvcTienda.Web.Controllers
                     // Ordenamos por fecha descendente para que la más reciente aparezca primero
                     model.MisOrdenes = historial.OrderByDescending(o => o.Fecha).ToList();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // Loguear error si fuera necesario y notificar a la vista
                     ViewBag.OrderError = "No se pudo cargar el historial de órdenes.";

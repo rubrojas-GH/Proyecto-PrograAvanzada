@@ -25,8 +25,8 @@ namespace MvcTienda.Web.Controllers
         // =====================================================
         // ACCIONES PARA ASOCIADOS (CREACIÓN DE RESEÑAS)
         // =====================================================
-        // Solo usuarios logueados (Asociados o Administradores) pueden escribir reseñas.
-        [Authorize(Roles = "Asociado, Administrador")]
+        // Solo usuarios logueados (Asociados) pueden escribir reseñas.
+        [Authorize(Roles = "Asociado")]
         //
         // GET: /Resena/Create/5
         // id = idProducto
@@ -94,13 +94,20 @@ namespace MvcTienda.Web.Controllers
         //
         // GET: /Resena/Moderation
         // Muestra la lista de reseñas pendientes de aprobación
+        // NOTA: Esta acción solo carga la vista inicial. Las acciones de Aprobar/Rechazar
+        // ahora se gestionan de forma asíncrona mediante JavaScript llamando a la Web API.
         public ActionResult Moderation()
         {
             var resenasPendientes = _resenaService.GetResenasPendientes();
             return View(resenasPendientes);
         }
 
-        //
+        /* * MÉTODOS OBSOLETOS - REEMPLAZADOS POR WEB API (AJAX)
+         * Se comentan para evitar colisiones y cumplir con el requisito de moderación asíncrona.
+         * La lógica de estos métodos ahora reside en ResenasController dentro del proyecto API.
+         */
+
+        /*
         // POST: /Resena/Approve/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -119,8 +126,9 @@ namespace MvcTienda.Web.Controllers
 
             return RedirectToAction("Moderation");
         }
+        */
 
-        //
+        /*
         // POST: /Resena/Reject/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -139,5 +147,6 @@ namespace MvcTienda.Web.Controllers
 
             return RedirectToAction("Moderation");
         }
+        */
     }
 }

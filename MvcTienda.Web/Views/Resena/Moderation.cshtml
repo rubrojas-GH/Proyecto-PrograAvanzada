@@ -12,31 +12,34 @@
             <h2 class="fw-bold text-dark"><i class="bi bi-shield-check text-primary me-2"></i>@ViewBag.Title</h2>
             <p class="text-muted">Gestione las opiniones de los asociados antes de que sean públicas.</p>
         </div>
+        @* Agregamos ID 'badge-count' para actualizarlo por JS *@
         <span class="badge bg-primary rounded-pill px-3 py-2">
-            @Model.Count() Pendientes
+            <span id="badge-count">@Model.Count()</span> Pendientes
         </span>
     </div>
 
     @* --- ALERTAS DE FEEDBACK --- *@
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    <div id="alert-container-moderation">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    </div>
 
     @* --- CONTENIDO PRINCIPAL --- *@
     @if (!Model.Any())
     {
-        <div class="card shadow-sm border-0 rounded-4 py-5 text-center">
+        <div class="card shadow-sm border-0 rounded-4 py-5 text-center" id="empty-state">
             <div class="card-body">
                 <div class="mb-3">
                     <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
@@ -49,7 +52,7 @@
     }
     else
     {
-        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden" id="moderation-table-container">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-secondary small text-uppercase">
@@ -62,10 +65,13 @@
                             <th class="text-end pe-4">Acciones</th>
                         </tr>
                     </thead>
+
+                    @* --- TABLA --- *@
                     <tbody>
                         @foreach (var resena in Model)
                         {
-                            <tr>
+                            @* Agregamos un ID a la fila <tr> para que el script la encuentre fácilmente *@
+                            <tr id="row-@resena.Id">
                                 <td class="ps-4">
                                     <div class="d-flex flex-column">
                                         <span class="fw-bold text-dark">@(resena.NombreProducto ?? "Producto Desconocido")</span>
@@ -88,7 +94,7 @@
                                     </p>
                                 </td>
                                 <td class="text-center">
-                                    <div class="text-warning small">
+                                    <div class="text-warning small" title="Calificación: @resena.Calificacion/5">
                                         @for (int i = 1; i <= 5; i++)
                                         {
                                             <i class="bi @(i <= resena.Calificacion ? "bi-star-fill" : "bi-star")"></i>
@@ -100,24 +106,14 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="d-flex justify-content-end gap-2">
-                                        @* Botón Aprobar *@
-                                        @using (Html.BeginForm("Approve", "Resena", new { id = resena.Id }, FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">
-                                                <i class="bi bi-check-lg me-1"></i> Aprobar
-                                            </button>
-                                        }
+                                        @* Ajuste: Botones ahora disparan la lógica de confirmación visual *@
+                                        <button type="button" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm btn-approve-confirm" data-id="@resena.Id">
+                                            <i class="bi bi-check-lg me-1"></i> Aprobar
+                                        </button>
 
-                                        @* Botón Rechazar *@
-                                        @using (Html.BeginForm("Reject", "Resena", new { id = resena.Id }, FormMethod.Post))
-                                        {
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                    onclick="return confirm('¿Está seguro de que desea rechazar y ELIMINAR permanentemente esta reseña?');">
-                                                <i class="bi bi-trash3 me-1"></i> Rechazar
-                                            </button>
-                                        }
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-reject-confirm" data-id="@resena.Id">
+                                            <i class="bi bi-trash3 me-1"></i> Rechazar
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -147,10 +143,6 @@
             background-color: #f8f9ff !important;
         }
 
-    .card {
-        transition: transform 0.2s;
-    }
-
     /* Animación suave para los botones */
     .btn {
         transition: all 0.2s;
@@ -159,4 +151,108 @@
         .btn:hover {
             transform: translateY(-1px);
         }
+
+    /* Estilo para SweetAlert */
+    .swal2-popup {
+        border-radius: 1.25rem !important;
+    }
 </style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Definimos las URLs para que el JS las use
+        const API_BASE_URL = 'https://localhost:44349/api/resenas';
+
+        $(document).ready(function () {
+
+            // 1. CONFIRMACIÓN PARA APROBAR
+            $('.btn-approve-confirm').on('click', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: '¿Aprobar reseña?',
+                    text: "La opinión será visible para todos los clientes.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#198754', // verde success
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, aprobar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Llamamos a la función que ya tienes en resenas-moderacion.js
+                        // Si tu script no tiene la función expuesta, puedes disparar el evento
+                        if (typeof aprobarResena === "function") {
+                            aprobarResena(id);
+                        } else {
+                            // Si no está expuesta, forzamos un clic en el botón original si existiera o ejecutamos el fetch
+                            ejecutarAccionModeracion(id, 'approve');
+                        }
+                    }
+                });
+            });
+
+            // 2. CONFIRMACIÓN PARA RECHAZAR
+            $('.btn-reject-confirm').on('click', function () {
+                const id = $(this).data('id');
+                Swal.fire({
+                    title: '¿Rechazar reseña?',
+                    text: "Esta reseña será eliminada permanentemente.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545', // rojo danger
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        ejecutarAccionModeracion(id, 'reject');
+                    }
+                });
+            });
+
+            // Función auxiliar por si resenas-moderacion.js solo maneja eventos directos
+            function ejecutarAccionModeracion(id, accion) {
+                // AJUSTE: Ahora las URLs coinciden exactamente con tu ResenasController.cs
+                const url = accion === 'approve'
+                    ? `${API_BASE_URL}/approve/${id}`
+                    : `${API_BASE_URL}/reject/${id}`;
+
+                const metodo = accion === 'approve' ? 'PUT' : 'DELETE';
+
+                fetch(url, { method: metodo })
+                    .then(response => {
+                        if (response.ok) {
+                            Swal.fire({
+                                title: '¡Logrado!',
+                                text: `La reseña ha sido ${accion === 'approve' ? 'aprobada' : 'rechazada'} con éxito.`,
+                                icon: 'success',
+                                confirmButtonColor: '#0d6efd'
+                            });
+
+                            $(`#row-${id}`).fadeOut(400, function () {
+                                $(this).remove();
+                                actualizarContador();
+                            });
+                        } else {
+                            // Si el servidor responde con error (ej. BadRequest), intentamos leer el mensaje
+                            response.text().then(text => {
+                                Swal.fire('Error', text || 'No se pudo procesar la solicitud.', 'error');
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error de red', 'No se pudo conectar con el servidor.', 'error');
+                    });
+            }
+
+            function actualizarContador() {
+                let count = parseInt($('#badge-count').text());
+                count--;
+                $('#badge-count').text(count);
+                if (count === 0) location.reload(); // Recargar para mostrar el empty state
+            }
+        });
+    </script>
+    <script src="~/Scripts/resenas-moderacion.js"></script>
+}

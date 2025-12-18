@@ -1,134 +1,59 @@
-﻿using MvcTienda.Aplicacion.Productos;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Http;
+﻿using System.Web.Http;
+using System.Web.Http.Cors;
+using MvcTienda.Aplicacion.Productos;
 
 namespace MvcTienda.API.Controllers
 {
-    [Authorize]
-    [RoutePrefix("api/cart")]
-    public class CartController : ApiController
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
+    [RoutePrefix("api/carrito")]
+    public class CarritoController : ApiController
     {
         private readonly IProductoService _productoService;
-        private const string SessionCartKey = "ShoppingCart";
 
-        public CartController(IProductoService productoService)
+        public CarritoController(IProductoService productoService)
         {
             _productoService = productoService;
         }
 
-        // POST api/cart/add
         [HttpPost]
-        [Route("add")]
-        public IHttpActionResult Add(AddToCartRequest request)
+        [Route("validar-item")]
+        public IHttpActionResult ValidarItem([FromBody] CarritoRequest request)
         {
             if (request == null || request.IdProducto <= 0 || request.Cantidad <= 0)
-                return BadRequest("Datos inválidos.");
+                return BadRequest("Datos del producto no válidos.");
 
             var producto = _productoService.GetProductoConDetalles(request.IdProducto);
+
             if (producto == null)
                 return NotFound();
 
-            var cart = GetCart();
-            int cantidadActual = cart.ContainsKey(request.IdProducto)
-                ? cart[request.IdProducto]
-                : 0;
+            // Sumamos lo que ya hay en el carrito (si el JS lo envía) + lo nuevo
+            int totalProyectado = request.Cantidad + request.CantidadPrevia;
 
-            if (cantidadActual + request.Cantidad > producto.Stock)
+            if (totalProyectado > producto.Stock)
             {
                 return Ok(new
                 {
                     success = false,
-                    message = $"Stock insuficiente. Disponible: {producto.Stock}"
+                    message = $"Stock insuficiente. Disponibles: {producto.Stock}. " +
+                              (request.CantidadPrevia > 0 ? $"(Ya tienes {request.CantidadPrevia} en el carrito)" : "")
                 });
             }
-
-            if (cart.ContainsKey(request.IdProducto))
-                cart[request.IdProducto] += request.Cantidad;
-            else
-                cart.Add(request.IdProducto, request.Cantidad);
-
-            SaveCart(cart);
 
             return Ok(new
             {
                 success = true,
-                cartCount = cart.Sum(x => x.Value),
-                message = "Producto agregado al carrito"
+                message = "Validación exitosa.",
+                nombre = producto.Nombre,
+                precio = producto.Precio
             });
-        }
-
-        // POST api/cart/update
-        [HttpPost]
-        [Route("update")]
-        public IHttpActionResult Update(UpdateCartRequest request)
-        {
-            if (request == null || request.Cantidad <= 0)
-                return BadRequest("Datos inválidos.");
-
-            var producto = _productoService.GetProductoConDetalles(request.IdProducto);
-            if (producto == null)
-                return NotFound();
-
-            if (request.Cantidad > producto.Stock)
-            {
-                return Ok(new
-                {
-                    success = false,
-                    message = $"Solo hay {producto.Stock} unidades disponibles.",
-                    maxStock = producto.Stock
-                });
-            }
-
-            var cart = GetCart();
-            if (!cart.ContainsKey(request.IdProducto))
-                return BadRequest("Producto no está en el carrito.");
-
-            cart[request.IdProducto] = request.Cantidad;
-            SaveCart(cart);
-
-            decimal nuevoTotal = cart.Sum(i => {
-                var p = _productoService.GetProductoConDetalles(i.Key);
-                return p.Precio * i.Value;
-            });
-
-            return Ok(new
-            {
-                success = true,
-                nuevoSubtotal = (producto.Precio * request.Cantidad).ToString("C"),
-                nuevoTotal = nuevoTotal.ToString("C"),
-                cartCount = cart.Sum(x => x.Value)
-            });
-        }
-
-        public class UpdateCartRequest
-        {
-            public int IdProducto { get; set; }
-            public int Cantidad { get; set; }
-        }
-
-
-        // =======================
-        // Helpers de sesión
-        // =======================
-        private Dictionary<int, int> GetCart()
-        {
-            var session = HttpContext.Current.Session;
-            return session[SessionCartKey] as Dictionary<int, int>
-                   ?? new Dictionary<int, int>();
-        }
-
-        private void SaveCart(Dictionary<int, int> cart)
-        {
-            HttpContext.Current.Session[SessionCartKey] = cart;
         }
     }
 
-    // DTO del request
-    public class AddToCartRequest
+    public class CarritoRequest
     {
         public int IdProducto { get; set; }
         public int Cantidad { get; set; }
+        public int CantidadPrevia { get; set; }
     }
 }

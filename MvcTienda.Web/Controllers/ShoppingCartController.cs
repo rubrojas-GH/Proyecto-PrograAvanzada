@@ -107,7 +107,7 @@ namespace MvcTienda.Web.Controllers
             return RedirectToAction("Index", "Producto");
         }
 
-        // NUEVO: POST: /ShoppingCart/UpdateQuantity
+        // POST: /ShoppingCart/UpdateQuantity
         // Ajuste para permitir modificar cantidades directamente desde el carrito con validación de stock
         [HttpPost]
         public ActionResult UpdateQuantity(int idProducto, int cantidad)
@@ -213,6 +213,15 @@ namespace MvcTienda.Web.Controllers
             }
 
             return View(orden);
+        }
+
+        // MÉTODO PARA AJAX: Obtiene la cantidad de un producto específico en la sesión actual
+        [HttpGet]
+        public JsonResult GetQuantityInCart(int idProducto)
+        {
+            var cart = GetCartFromSession();
+            int cantidadEnSesion = cart.ContainsKey(idProducto) ? cart[idProducto] : 0;
+            return Json(cantidadEnSesion, JsonRequestBehavior.AllowGet);
         }
 
         // Auxiliar para no repetir código de sesión

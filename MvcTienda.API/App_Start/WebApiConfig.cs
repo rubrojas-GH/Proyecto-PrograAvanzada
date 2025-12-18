@@ -9,7 +9,7 @@ namespace MvcTienda.API
         public static void Register(HttpConfiguration config)
         {
             // =========================
-            // 🔓 HABILITAR CORS (Web API clásico)
+            // HABILITAR CORS (Web API clásico)
             // =========================
             var cors = new System.Web.Http.Cors.EnableCorsAttribute(
                 origins: "*",
@@ -19,7 +19,7 @@ namespace MvcTienda.API
             config.EnableCors(cors);
 
             // =========================
-            // 🔗 RUTAS WEB API
+            // RUTAS WEB API
             // =========================
             config.MapHttpAttributeRoutes();
 
@@ -30,7 +30,7 @@ namespace MvcTienda.API
             );
 
             // =========================
-            // 🔄 FORZAR JSON
+            // FORZAR JSON
             // =========================
             config.Formatters.Remove(config.Formatters.XmlFormatter);
 
@@ -40,7 +40,7 @@ namespace MvcTienda.API
                 new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
 
             // =========================
-            // 🚀 INICIALIZAR
+            // INICIALIZAR
             // =========================
             config.EnsureInitialized();
         }

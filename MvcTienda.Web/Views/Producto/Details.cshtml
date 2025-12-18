@@ -28,13 +28,17 @@
                 <img src="@imagenPrincipal" alt="@Model.Nombre" class="img-fluid" style="width: 100%; max-height: 500px; object-fit: contain;" />
             </div>
 
-            @if (Model.Imagenes != null && Model.Imagenes.Count() > 1)
+            @if (Model.Imagenes != null && Model.Imagenes.Count() > 0)
             {
                 <div class="row g-2">
-                    @foreach (var img in Model.Imagenes.Skip(1))
+                    @foreach (var img in Model.Imagenes)
                     {
                         <div class="col-3">
-                            <img src="@img.UrlImagen" class="img-thumbnail transition-hover shadow-sm" style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;" />
+                            @* Añadimos un pequeño script para que al hacer clic cambie la foto grande *@
+                            <img src="@img.UrlImagen"
+                                 class="img-thumbnail shadow-sm"
+                                 style="cursor: pointer; height: 80px; width: 100%; object-fit: cover;"
+                                 onclick="document.querySelector('.main-image-container img').src = this.src" />
                         </div>
                     }
                 </div>
@@ -43,14 +47,6 @@
 
         @* --- COLUMNA DE INFORMACIÓN --- *@
         <div class="col-md-6">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Inicio</a></li>
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Producto")">Tienda</a></li>
-                    <li class="breadcrumb-item active">@Model.NombreCategoria</li>
-                </ol>
-            </nav>
-
             <h1 class="fw-bold text-dark mb-3">@Model.Nombre</h1>
             <h2 class="text-primary fw-bold mb-4">@Model.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</h2>
 
@@ -59,32 +55,27 @@
                     <dt class="col-sm-4">Categoría</dt>
                     <dd class="col-sm-8 text-primary fw-bold">@Model.NombreCategoria</dd>
 
-                    <dt class="col-sm-4 mt-2">Estado</dt>
+                    @* AJUSTE DE STOCK DINÁMICO *@
+                    <dt class="col-sm-4 mt-2">Stock Total</dt>
                     <dd class="col-sm-8 mt-2">
-                        @if (Model.EstadoProducto == true)
-                        {
-                            <span class="badge bg-success">Disponible</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Inactivo</span>
-                        }
+                        <span id="stock-total-@Model.Id" class="@(Model.Stock <= 5 ? "text-danger fw-bold" : "")">@Model.Stock</span> unidades
                     </dd>
 
-                    <dt class="col-sm-4 mt-2">Stock</dt>
-                    <dd class="col-sm-8 mt-2 @(Model.Stock <= 5 ? "text-danger fw-bold" : "text-dark")">
-                        @Model.Stock unidades restantes
+                    @* GANCHO PARA JS: Aquí se mostrará "Ya tienes X en el carrito" *@
+                    <dt class="col-sm-4 mt-2"></dt>
+                    <dd class="col-sm-8 mt-1">
+                        <span id="stock-info-@Model.Id" class="text-info fw-bold small"></span>
                     </dd>
                 </dl>
             </div>
 
-            <p class="text-muted mb-4 lead">@(string.IsNullOrEmpty(Model.Descripcion) ? "Este producto no cuenta con una descripción detallada todavía." : Model.Descripcion)</p>
+            <p class="text-muted mb-4 lead">@Model.Descripcion</p>
 
             @* Lógica de Compra *@
             <div class="d-grid gap-2">
                 @if (Model.Stock > 0 && User.IsInRole("Asociado"))
                 {
-                    using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "p-3 border rounded bg-white shadow-sm" }))
+                    using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "ajax-cart-form p-3 border rounded bg-white shadow-sm" }))
                     {
                         @Html.AntiForgeryToken()
                         @Html.Hidden("idProducto", Model.Id)
@@ -159,9 +150,9 @@
                             </div>
 
                             <div class="mb-2 text-warning">
-                                @for (int i = 0; i < 5; i++)
+                                @for (int i = 1; i <= 5; i++)
                                 {
-                                    <i class="bi @(i < resena.Calificacion ? "bi-star-fill" : "bi-star")"></i>
+                                    <i class="bi @(i <= resena.Calificacion ? "bi-star-fill" : "bi-star")"></i>
                                 }
                             </div>
 
@@ -179,3 +170,27 @@
         </a>
     </div>
 </div>
+
+@section Scripts {
+    @* 1. SweetAlert2 para mensajes modernos *@
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @* 2. El script centralizado que creamos *@
+    <script src="~/Scripts/carrito-ajax.js"></script>
+
+    <script>
+        // Pequeño ajuste visual para la galería de imágenes
+        function cambiarImagen(url) {
+            document.querySelector('.main-image-container img').src = url;
+        }
+    </script>
+
+    <style>
+        /* Estilos para el efecto de pulso en el navbar al añadir */
+        #cart-count.animate-pulse {
+            transform: scale(1.4);
+            transition: transform 0.2s ease;
+            color: #ffc107; /* Opcional: cambia a color dorado un instante */
+        }
+    </style>
+}

@@ -58,17 +58,14 @@ namespace MvcTienda.Aplicacion.Productos
 
         public ProductoDto GetProductoConDetalles(int id)
         {
+            // Se asume que el repositorio ya trae Includes de Imágenes y Categoría
             var producto = _productoRepository.GetProductoById(id);
 
-            if (producto == null)
-            {
-                return null;
-            }
+            if (producto == null) return null;
 
-            // 1. Obtener las reseñas usando el Servicio de Reseñas
+            // RF4: Solo obtenemos reseñas aprobadas mediante el servicio especializado
             var resenasAprobadas = _resenaService.GetResenasAprobadasByProducto(id);
 
-            // 2. Mapear el Producto DTO
             return new ProductoDto
             {
                 Id = producto.idProducto,
@@ -77,17 +74,18 @@ namespace MvcTienda.Aplicacion.Productos
                 Precio = Convert.ToDecimal(producto.precioProducto),
                 Stock = producto.stock,
                 EstadoProducto = producto.estadoProducto,
-
-                // Mapear ID y Nombre de Categoría para Detalles
                 IdCategoria = producto.idCategoria,
-                NombreCategoria = producto.Categoria?.nombreCategoria,
+                NombreCategoria = producto.Categoria?.nombreCategoria ?? "Sin Categoría",
 
-                // Mapeo de colecciones (Imágenes)
-                Imagenes = producto.Imagenes
-                                .Where(i => i != null)
-                                .Select(i => new ImagenProductoDto { Id = i.idImagen, UrlImagen = i.urlImagen })
-                                .ToList(),
+                Imagenes = producto.Imagenes?
+                            .Where(i => i != null)
+                            .Select(i => new ImagenProductoDto
+                            {
+                                Id = i.idImagen,
+                                UrlImagen = i.urlImagen
+                            }).ToList() ?? new List<ImagenProductoDto>(),
 
+                // Inyección de reseñas aprobadas en el DTO del producto
                 Resenas = resenasAprobadas.ToList()
             };
         }
@@ -119,10 +117,11 @@ namespace MvcTienda.Aplicacion.Productos
             var producto = new Producto
             {
                 nombreProducto = productoDto.Nombre,
+                descripcion = productoDto.Descripcion,
                 precioProducto = productoDto.Precio,
                 stock = productoDto.Stock,
                 estadoProducto = true,
-                idCategoria = productoDto.IdCategoria // 🟢 Usar la FK del DTO
+                idCategoria = productoDto.IdCategoria
             };
 
             _productoRepository.AddProducto(producto);
@@ -151,6 +150,7 @@ namespace MvcTienda.Aplicacion.Productos
                 throw new InvalidOperationException("Producto no encontrado.");
 
             producto.nombreProducto = productoDto.Nombre;
+            producto.descripcion = productoDto.Descripcion;
             producto.precioProducto = productoDto.Precio;
             producto.stock = productoDto.Stock;
             producto.idCategoria = productoDto.IdCategoria; // Actualizar la FK

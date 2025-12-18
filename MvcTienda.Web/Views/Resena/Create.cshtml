@@ -98,3 +98,13 @@
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
     }
 </style>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const rating = document.querySelector('input[name="Calificacion"]:checked');
+        if (!rating) {
+            e.preventDefault();
+            alert("Por favor, selecciona una calificación con estrellas.");
+        }
+    });
+</script>

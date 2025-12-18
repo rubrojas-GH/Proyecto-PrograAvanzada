@@ -31,7 +31,7 @@
     <div class="row">
         @* Filtros Laterales *@
         <div class="col-lg-3 mb-4">
-            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 85px; z-index: 1000;">
                 <div class="card-body">
                     <h5 class="card-title fw-bold mb-3"><i class="bi bi-filter-left me-2"></i>Categorías</h5>
                     <div class="list-group list-group-flush">
@@ -84,28 +84,43 @@
                                 <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">@producto.NombreCategoria</small>
                                 <h5 class="card-title mt-1 mb-2">@producto.Nombre</h5>
                                 <p class="text-primary fs-5 fw-bold mb-0">@producto.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</p>
-                                @* Mostramos el stock actual de la DB para referencia del usuario *@
-                                <small class="text-muted d-block mt-1">Disponibles: @producto.Stock</small>
+
+                                @* --- AJUSTE VISUAL DE STOCK --- *@
+                                <div class="mt-2">
+                                    <small class="text-muted d-block">
+                                        Stock Total: <span id="stock-total-@producto.Id">@producto.Stock</span>
+                                    </small>
+                                    @* JS llenará este span con "Ya tienes X en el carrito" *@
+                                    <small class="text-info d-block fw-bold" id="stock-info-@producto.Id"></small>
+                                </div>
                             </div>
 
                             <div class="card-footer bg-white border-0 pt-0 pb-3">
                                 @if (producto.Stock > 0 && User.IsInRole("Asociado"))
                                 {
-                                    @* Formulario con AJAX *@
                                     using (Html.BeginForm("AddItem", "ShoppingCart", FormMethod.Post, new { @class = "ajax-cart-form" }))
                                     {
                                         @Html.Hidden("idProducto", producto.Id)
+
                                         <div class="input-group input-group-sm">
-                                            <input type="number" name="cantidad" value="1" min="1" max="@producto.Stock" class="form-control" />
-                                            <button type="submit" class="btn btn-primary px-3">
+                                            <input type="number"
+                                                   name="cantidad"
+                                                   value="1"
+                                                   min="1"
+                                                   max="@producto.Stock"
+                                                   class="form-control txt-cantidad-item" />
+
+                                            <button type="submit" class="btn btn-primary px-3 btn-add-cart">
                                                 <i class="bi bi-cart-plus"></i>
                                             </button>
                                         </div>
                                     }
                                 }
-                                else
+                                else if (producto.Stock > 0)
                                 {
-                                    <a href="@Url.Action("Details", new { id = producto.Id })" class="btn btn-sm btn-outline-secondary w-100 rounded-pill">Ver Detalles</a>
+                                    <a href="@Url.Action("Details", new { id = producto.Id })" class="btn btn-sm btn-outline-secondary w-100 rounded-pill">
+                                        Ver Detalles
+                                    </a>
                                 }
                             </div>
                         </div>
@@ -117,72 +132,26 @@
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function () {
-            // Inicializamos el Toast de Bootstrap
-            var toastEl = document.getElementById('cartToast');
-            var cartToast = new bootstrap.Toast(toastEl, { delay: 3000 });
-
-            // Interceptamos el envío del formulario
-            $('.ajax-cart-form').on('submit', function (e) {
-                e.preventDefault();
-
-                var $form = $(this);
-                var actionUrl = $form.attr('action');
-                var dataToSend = $form.serialize();
-
-                $.ajax({
-                    url: actionUrl,
-                    type: 'POST',
-                    data: dataToSend,
-                    success: function (response) {
-                        if (response.success) {
-                            // 1. ÉXITO: Actualizamos el número del carrito
-                            $('#cart-count').text(response.count);
-
-                            // 2. Animación de pulso en el icono
-                            $('#cart-count').addClass('animate-pulse');
-                            setTimeout(function () {
-                                $('#cart-count').removeClass('animate-pulse');
-                            }, 500);
-
-                            // 3. Mostramos Toast verde
-                            showNotification(response.message, 'bg-success');
-                        } else {
-                            // 4. ERROR (Stock insuficiente u otro): Mostramos Toast naranja
-                            showNotification(response.message, 'bg-warning text-dark');
-                        }
-                    },
-                    error: function () {
-                        showNotification("Error de conexión al procesar el carrito.", "bg-danger");
-                    }
-                });
-            });
-
-            // Función auxiliar para configurar y mostrar el Toast
-            function showNotification(message, cssClass) {
-                $('#cartToast').removeClass('bg-success bg-warning bg-danger text-dark').addClass(cssClass);
-                $('#toastMessage').text(message);
-                cartToast.show();
-            }
-        });
-    </script>
+    <script src="~/Scripts/carrito-ajax.js"></script>
 
     <style>
-        /* Animación para el numerito del carrito */
         .animate-pulse {
             transform: scale(1.4);
             transition: transform 0.2s ease;
         }
 
-        .transition-hover:hover {
-            transform: translateY(-5px);
+        .transition-hover {
             transition: transform 0.3s ease;
         }
 
-        /* Estilo para que el toast resalte */
-        .toast-container {
-            top: 70px !important; /* Ajusta según la altura de tu navbar */
+            .transition-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+            }
+
+        /* Estilo para el mensaje de "Ya tienes X" */
+        .text-info {
+            font-size: 0.85rem;
         }
     </style>
 }
