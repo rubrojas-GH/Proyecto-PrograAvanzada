@@ -1,0 +1,100 @@
+﻿@model MvcTienda.Aplicacion.Resenas.ResenaDto
+@{
+    ViewBag.Title = "Escribir Reseña";
+    var producto = (MvcTienda.Aplicacion.Productos.ProductoDto)ViewBag.Producto;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            @* Encabezado con información del producto *@
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-light rounded-3 p-3 me-4">
+                        <i class="bi bi-chat-left-quote text-primary fs-1"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1">Tu opinión importa</h2>
+                        <p class="text-muted mb-0">Estás reseñando: <strong>@producto.Nombre</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            @* Formulario de Reseña *@
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+
+                    @using (Html.BeginForm("Create", "Resena", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.IdProducto)
+
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger rounded-3" })
+
+                        @* Calificación con Estrellas *@
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block">Calificación</label>
+                            <div class="star-rating d-flex flex-row-reverse justify-content-end">
+                                @for (int i = 5; i >= 1; i--)
+                                {
+                                    <input type="radio" id="star-@i" name="Calificacion" value="@i" @(Model.Calificacion == i ? "checked" : "") />
+                                    <label for="star-@i" title="@i estrellas"><i class="bi bi-star-fill"></i></label>
+                                }
+                            </div>
+                            @Html.ValidationMessageFor(m => m.Calificacion, "", new { @class = "text-danger small" })
+                        </div>
+
+                        @* Comentario *@
+                        <div class="mb-4">
+                            <label for="Comentario" class="form-label fw-bold">Cuéntanos tu experiencia</label>
+                            @Html.TextAreaFor(m => m.Comentario, new
+                            {
+                                @class = "form-control rounded-3",
+                                rows = "5",
+                                placeholder = "¿Qué te pareció el producto? ¿Lo recomendarías?"
+                            })
+                            @Html.ValidationMessageFor(m => m.Comentario, "", new { @class = "text-danger small" })
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="@Url.Action("Details", "Producto", new { id = Model.IdProducto })" class="btn btn-light border px-4 rounded-pill">Cancelar</a>
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow-sm">
+                                Enviar Reseña <i class="bi bi-send ms-2"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo para las estrellas interactivas */
+    .star-rating {
+        font-size: 1.5rem;
+    }
+
+        .star-rating input {
+            display: none;
+        }
+
+        .star-rating label {
+            color: #ddd;
+            cursor: pointer;
+            padding: 0 0.1rem;
+            transition: color 0.2s;
+        }
+
+            .star-rating input:checked ~ label,
+            .star-rating label:hover,
+            .star-rating label:hover ~ label {
+                color: #ffc107; /* Color dorado */
+            }
+
+    /* Animación de los campos */
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+</style>

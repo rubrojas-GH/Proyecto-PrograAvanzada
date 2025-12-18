@@ -2,85 +2,161 @@
 @model IEnumerable<ResenaDto>
 
 @{
-    ViewBag.Title = "Moderación de Reseñas";
+    ViewBag.Title = "Panel de Moderación";
 }
 
-<h2>@ViewBag.Title</h2>
-<p class="lead">Listado de reseñas enviadas por los asociados que requieren aprobación.</p>
-
-@* Mostrar mensajes de éxito o error después de una acción de moderación *@
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-}
-
-<hr />
-
-@if (!Model.Any())
-{
-    <div class="alert alert-info">
-        <i class="glyphicon glyphicon-ok-circle"></i> ¡No hay reseñas pendientes de moderación en este momento!
+<div class="container mt-4 pb-5">
+    @* --- ENCABEZADO --- *@
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold text-dark"><i class="bi bi-shield-check text-primary me-2"></i>@ViewBag.Title</h2>
+            <p class="text-muted">Gestione las opiniones de los asociados antes de que sean públicas.</p>
+        </div>
+        <span class="badge bg-primary rounded-pill px-3 py-2">
+            @Model.Count() Pendientes
+        </span>
     </div>
-}
-else
-{
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>@Html.DisplayNameFor(model => model.Id)</th>
-                <th>Producto</th>
-                <th>Usuario</th>
-                <th>@Html.DisplayNameFor(model => model.Comentario)</th>
-                <th>@Html.DisplayNameFor(model => model.Calificacion)</th>
-                <th>@Html.DisplayNameFor(model => model.Fecha)</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var resena in Model)
-            {
-                <tr>
-                    <td>@resena.Id</td>
-                    <td>
-                        @* El DTO ahora debe tener la propiedad NombreProducto *@
-                        @Html.ActionLink(resena.NombreProducto ?? "Producto Eliminado", "Details", "Producto", new { id = resena.IdProducto }, new { target = "_blank" })
-                    </td>
-                    @* El DTO ahora debe tener la propiedad NombreUsuario *@
-                    <td>@(resena.NombreUsuario ?? "Usuario Desconocido")</td>
-                    <td>
-                        <p style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@resena.Comentario">
-                            @resena.Comentario
-                        </p>
-                    </td>
-                    <td>
-                        <span class="label label-primary">@resena.Calificacion / 5</span>
-                    </td>
-                    <td>@resena.Fecha.ToShortDateString()</td>
-                    <td>
-                        @* -- Formulario para APROBAR -- *@
-                        @using (Html.BeginForm("Approve", "Resena", new { id = resena.Id }, FormMethod.Post, new { style = "display:inline; margin-right: 5px;" }))
-                        {
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-xs btn-success" title="Aprobar Reseña">
-                                Aprobar
-                            </button>
-                        }
 
-                        @* -- Formulario para RECHAZAR/ELIMINAR -- *@
-                        @using (Html.BeginForm("Reject", "Resena", new { id = resena.Id }, FormMethod.Post, new { style = "display:inline;" }))
+    @* --- ALERTAS DE FEEDBACK --- *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* --- CONTENIDO PRINCIPAL --- *@
+    @if (!Model.Any())
+    {
+        <div class="card shadow-sm border-0 rounded-4 py-5 text-center">
+            <div class="card-body">
+                <div class="mb-3">
+                    <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-dark fw-bold">¡Todo al día!</h4>
+                <p class="text-muted">No hay reseñas pendientes de aprobación en este momento.</p>
+                <a href="@Url.Action("Index", "Producto")" class="btn btn-light border rounded-pill px-4">Ir a la tienda</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary small text-uppercase">
+                        <tr>
+                            <th class="ps-4">Producto</th>
+                            <th>Usuario</th>
+                            <th>Reseña</th>
+                            <th class="text-center">Puntuación</th>
+                            <th>Fecha</th>
+                            <th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var resena in Model)
                         {
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-xs btn-danger" onclick="return confirm('¿Está seguro de que desea rechazar y ELIMINAR permanentemente esta reseña?');" title="Rechazar Reseña">
-                                Rechazar
-                            </button>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold text-dark">@(resena.NombreProducto ?? "Producto Desconocido")</span>
+                                        <a href="@Url.Action("Details", "Producto", new { id = resena.IdProducto })" target="_blank" class="text-decoration-none small">
+                                            Ver producto <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.7rem;"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2 bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person"></i>
+                                        </div>
+                                        <span class="small fw-semibold text-secondary">@resena.NombreUsuario</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p class="mb-0 small text-dark text-wrap" style="max-width: 250px;">
+                                        "@resena.Comentario"
+                                    </p>
+                                </td>
+                                <td class="text-center">
+                                    <div class="text-warning small">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="bi @(i <= resena.Calificacion ? "bi-star-fill" : "bi-star")"></i>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="text-muted small">
+                                    @resena.Fecha.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        @* Botón Aprobar *@
+                                        @using (Html.BeginForm("Approve", "Resena", new { id = resena.Id }, FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">
+                                                <i class="bi bi-check-lg me-1"></i> Aprobar
+                                            </button>
+                                        }
+
+                                        @* Botón Rechazar *@
+                                        @using (Html.BeginForm("Reject", "Resena", new { id = resena.Id }, FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                                    onclick="return confirm('¿Está seguro de que desea rechazar y ELIMINAR permanentemente esta reseña?');">
+                                                <i class="bi bi-trash3 me-1"></i> Rechazar
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    /* Estilos adicionales para pulir el diseño */
+    .table thead th {
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s;
+    }
+
+        .table tbody tr:hover {
+            background-color: #f8f9ff !important;
+        }
+
+    .card {
+        transition: transform 0.2s;
+    }
+
+    /* Animación suave para los botones */
+    .btn {
+        transition: all 0.2s;
+    }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+</style>

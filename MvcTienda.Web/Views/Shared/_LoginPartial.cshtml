@@ -62,6 +62,12 @@ else
 {
     <ul class="navbar-nav navbar-right">
         <li class="nav-item">@Html.ActionLink("Registrarse", "Register", "User", routeValues: null, htmlAttributes: new { @class = "nav-link" })</li>
-        <li class="nav-item">@Html.ActionLink("Iniciar sesión", "Login", "User", routeValues: null, htmlAttributes: new { @class = "nav-link btn btn-outline-info ms-lg-2 px-3" })</li>
+        @Html.ActionLink(
+            "Iniciar sesión",
+            "Login",
+            "User",
+            null,
+            new { @class = "nav-link btn btn-outline-info btn-sm ms-lg-2 px-3 fw-semibold" }
+        )
     </ul>
 }

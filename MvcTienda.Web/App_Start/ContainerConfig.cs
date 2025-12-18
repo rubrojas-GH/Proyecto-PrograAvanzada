@@ -1,21 +1,19 @@
 ﻿using Autofac;
 using Autofac.Integration.Mvc;
-using System.Web.Mvc;
-
+using MvcTienda.Aplicacion.Categorias;
+using MvcTienda.Aplicacion.Dashboard;
+using MvcTienda.Aplicacion.Ordenes;
+using MvcTienda.Aplicacion.Productos;
+using MvcTienda.Aplicacion.Resenas;
+using MvcTienda.Aplicacion.Roles;
+// Capa de Aplicación (Servicios)
+using MvcTienda.Aplicacion.Usuarios;
+// Capa de Dominio (Interfaces)
+using MvcTienda.Domain.Repositories;
 // Capa de Infraestructura (Data Access)
 using MvcTienda.Infraestructura.Data;
 using MvcTienda.Infraestructura.Repositories;
-
-// Capa de Dominio (Interfaces)
-using MvcTienda.Domain.Repositories;
-
-// Capa de Aplicación (Servicios)
-using MvcTienda.Aplicacion.Usuarios;
-using MvcTienda.Aplicacion.Ordenes;
-using MvcTienda.Aplicacion.Roles;
-using MvcTienda.Aplicacion.Productos;
-using MvcTienda.Aplicacion.Resenas;
-using MvcTienda.Aplicacion.Categorias;
+using System.Web.Mvc;
 
 namespace MvcTienda.Web
 {
@@ -50,9 +48,8 @@ namespace MvcTienda.Web
             // Servicios Actualizados/Nuevos
             builder.RegisterType<ResenaService>().As<IResenaService>().InstancePerRequest();
 
-            // 🚨 CORRECCIÓN y NUEVO: El servicio de Producto debe ser registrado como IProductoService
-            // Y el servicio de Categoría debe ser registrado como ICategoriaService
             builder.RegisterType<ProductoService>().As<IProductoService>().InstancePerRequest();
+            builder.RegisterType<DashboardService>().As<IDashboardService>().InstancePerRequest();
             builder.RegisterType<CategoriaService>().As<ICategoriaService>().InstancePerRequest();
 
             // 5. Configurar el Dependency Resolver

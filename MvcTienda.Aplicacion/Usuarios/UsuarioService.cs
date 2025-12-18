@@ -88,17 +88,20 @@ namespace MvcTienda.Aplicacion.Usuarios
         // ============================
         public void UpdateUser(UsuarioDto dto)
         {
+            // 1. Buscar el usuario existente en la DB
             var usuario = _usuarioRepository.GetUsuarioById(dto.Id);
             if (usuario == null)
                 throw new InvalidOperationException("Usuario no encontrado.");
 
-            var rolEntity = _usuarioRepository.GetRolByName(dto.Rol);
-            if (rolEntity == null)
-                throw new InvalidOperationException("Rol inválido.");
-
-            usuario.idRol = rolEntity.idRol;
+            // 2. Actualizar datos básicos
+            usuario.nombre = dto.Nombre;
             usuario.estado = dto.Estado;
 
+            // 3. Actualizar el Rol usando el IdRol que viene del DropDownList
+            // Es mucho más seguro usar el ID que buscar por string
+            usuario.idRol = dto.IdRol;
+
+            // 4. Persistir cambios
             _usuarioRepository.UpdateUsuario(usuario);
         }
 

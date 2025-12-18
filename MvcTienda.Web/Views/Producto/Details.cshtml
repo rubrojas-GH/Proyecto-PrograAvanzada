@@ -7,7 +7,7 @@
 }
 
 <div class="container mt-4">
-    @* Mensajes de Feedback *@
+    @* Mensajes de Feedback (Éxito al enviar reseña o agregar al carrito) *@
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -101,13 +101,14 @@
                         </div>
                     }
                 }
-                else if (Model.Stock > 0)
+                else if (Model.Stock > 0 && !User.Identity.IsAuthenticated)
                 {
+                    @* Solo mostramos advertencia si no está logueado *@
                     <div class="alert alert-warning border-0 shadow-sm">
                         <i class="bi bi-info-circle-fill me-2"></i> Inicie sesión como <strong>Asociado</strong> para realizar compras.
                     </div>
                 }
-                else
+                else if (Model.Stock <= 0)
                 {
                     <button class="btn btn-secondary btn-lg" disabled>Agotado Temporalmente</button>
                 }
@@ -122,6 +123,8 @@
         <div class="col-md-8 mx-auto">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="fw-bold"><i class="bi bi-chat-quote-fill text-primary me-2"></i>Reseñas de la Comunidad</h3>
+
+                @* Permitir botón si es Asociado *@
                 @if (User.IsInRole("Asociado"))
                 {
                     <a href="@Url.Action("Create", "Resena", new { id = Model.Id })" class="btn btn-outline-primary btn-sm rounded-pill px-3">
@@ -130,7 +133,13 @@
                 }
             </div>
 
-            @{ var resenasAprobadas = Model.Resenas?.OrderByDescending(r => r.Fecha).ToList() ?? new List<ResenaDto>(); }
+            @* Filtrar solo reseñas con Estado "Aprobada" *@
+            @{
+                var resenasAprobadas = Model.Resenas?
+                                        .Where(r => r.Estado == "Aprobada")
+                                        .OrderByDescending(r => r.Fecha)
+                                        .ToList() ?? new List<ResenaDto>();
+            }
 
             @if (!resenasAprobadas.Any())
             {

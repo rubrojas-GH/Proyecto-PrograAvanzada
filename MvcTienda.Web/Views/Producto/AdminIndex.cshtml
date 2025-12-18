@@ -72,12 +72,14 @@
                                     <i class="bi bi-eye-fill"></i>
                                 </a>
 
-                                @using (Html.BeginForm("Delete", "Producto", new { id = item.Id }, FormMethod.Post, new { @class = "d-inline" }))
+                                @using (Html.BeginForm("Delete", "Producto", new { id = item.Id }, FormMethod.Post))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('¿Eliminar producto?');" title="Eliminar">
-                                        <i class="bi bi-trash-fill"></i>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger btn-confirm-delete"
+                                            data-nombre="@item.Nombre"
+                                            data-tipo="el producto">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 }
                             </div>

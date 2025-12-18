@@ -199,15 +199,34 @@ namespace MvcTienda.Web.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(UsuarioDto dto)
         {
+            // 1. Limpieza agresiva de validaciones para campos que no se editan
+            ModelState.Remove("UltimaConexion");
+            ModelState.Remove("ContrasenaActual");
+            ModelState.Remove("Rol"); //  'Rol'  es un string que solo usamos para mostrar, no para guardar
+
             if (!ModelState.IsValid)
             {
+                // Si hay error, volvemos a cargar la lista para el dropdown
                 ViewBag.Roles = _rolService.GetAllRoles();
                 return View(dto);
             }
 
-            _usuarioService.UpdateUser(dto);
-            TempData["SuccessMessage"] = "Usuario actualizado correctamente.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _usuarioService.UpdateUser(dto);
+
+                // 2. TempData es lo que permite que el mensaje sobreviva a la redirección
+                TempData["SuccessMessage"] = "¡Éxito! El usuario " + dto.Nombre + " ha sido actualizado.";
+
+                // 3. Redirigir explícitamente al Index del controlador User
+                return RedirectToAction("Index", "User");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "No se pudo guardar: " + ex.Message);
+                ViewBag.Roles = _rolService.GetAllRoles();
+                return View(dto);
+            }
         }
 
         [HttpPost]

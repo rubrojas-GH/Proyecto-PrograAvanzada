@@ -25,23 +25,27 @@ namespace MvcTienda.Aplicacion.Resenas
 
         public void CreateResena(ResenaDto dto, int idUsuario)
         {
-            // Validar que el producto existe
+            // 1. Validar que el producto existe
             var producto = _productoRepository.GetProductoById(dto.IdProducto);
 
             // Si el producto no existe, lanzar una excepción
             if (producto == null)
                 throw new InvalidOperationException("No se puede añadir una reseña a un producto inexistente.");
 
-            // Mapear el DTO a la entidad de dominio
+            // 2. Mapear el DTO a la entidad de dominio
             var resena = new Resena
             {
                 idProducto = dto.IdProducto,
+                idUsuario = idUsuario, // Asociar la reseña al usuario que la crea
                 contenido = dto.Comentario,
                 calificacion = dto.Calificacion,
-                idUsuario = idUsuario // Asociar la reseña al usuario que la crea
+
+                // --- AJUSTES PARA LOGICA DE NEGOCIO ---
+                fecha = DateTime.Now,           // Seteamos la fecha actual
+                estado = "Pendiente"            // Forzamos el estado inicial para moderación
             };
 
-            // Persistir la nueva reseña (inicialmente en estado 'Pendiente')
+            // 3. Persistir la nueva reseña
             _resenaRepository.AddResena(resena);
         }
 

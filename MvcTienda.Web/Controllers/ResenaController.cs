@@ -49,7 +49,7 @@ namespace MvcTienda.Web.Controllers
         // POST: /Resena/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Asociado, Administrador")]
+        [Authorize(Roles = "Asociado")]
         public ActionResult Create(ResenaDto dto)
         {
             // Se obtiene el usuario autenticado a partir del email

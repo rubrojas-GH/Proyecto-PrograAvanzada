@@ -23,8 +23,9 @@
 @* Mensajes de Feedback *@
 @if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+    <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        @TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
@@ -76,17 +77,21 @@
                         </td>
                         <td class="text-end pe-3">
                             <div class="d-flex justify-content-end gap-2">
-                                <a href="@Url.Action("Edit", "Usuario", new { id = item.Id })"
+                                <a href="@Url.Action("Edit", "User", new { id = item.Id })"
                                    class="btn btn-sm btn-outline-primary" title="Editar Usuario">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
 
-                                @* Botón para cambiar estado o eliminar (opcional) *@
-                                @using (Html.BeginForm("Delete", "Usuario", new { id = item.Id }, FormMethod.Post, new { @class = "d-inline" }))
+                                @* Botón para cambiar estado o desactivar usuario *@
+                                @using (Html.BeginForm("Delete", "User", new { id = item.Id }, FormMethod.Post, new { @class = "d-inline" }))
                                 {
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('¿Está seguro de cambiar el estado de este usuario?');" title="Desactivar">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger btn-confirm-delete"
+                                            data-nombre="@item.Nombre"
+                                            data-tipo="al usuario"
+                                            data-mensaje="¿Estás seguro de que deseas desactivar o eliminar al usuario @item.Nombre? Esto afectará su acceso al sistema."
+                                            title="Desactivar Usuario">
                                         <i class="bi bi-person-x-fill"></i>
                                     </button>
                                 }

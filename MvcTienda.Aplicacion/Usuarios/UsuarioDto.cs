@@ -13,8 +13,6 @@ namespace MvcTienda.Aplicacion.Usuarios
         [Required, EmailAddress]
         public string Email { get; set; }
 
-        // Role name instead of Role ID for better readability
-        [Required]
         public string Rol { get; set; }
 
         public int IdRol { get; set; }

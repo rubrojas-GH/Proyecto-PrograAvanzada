@@ -44,7 +44,24 @@ namespace MvcTienda.Infraestructura.Repositories
 
         public void UpdateUsuario(Usuario usuario)
         {
-            _db.Entry(usuario).State = EntityState.Modified;
+            // Verificamos si la entidad ya está siendo rastreada por el contexto
+            var trackedEntity = _db.Usuarios.Local.FirstOrDefault(u => u.idUsuario == usuario.idUsuario);
+
+            if (trackedEntity != null)
+            {
+                // Si ya está rastreada, Entity Framework ya conoce los cambios realizados
+                // en el objeto 'usuario' (porque es la misma referencia). 
+                // Solo nos aseguramos de que el estado sea Modified.
+                _db.Entry(trackedEntity).State = EntityState.Modified;
+            }
+            else
+            {
+                // Si no está rastreada (por ejemplo, viene de otra sesión o contexto), 
+                // la adjuntamos y la marcamos como modificada.
+                _db.Usuarios.Attach(usuario);
+                _db.Entry(usuario).State = EntityState.Modified;
+            }
+
             _db.SaveChanges();
         }
 
@@ -95,71 +112,6 @@ namespace MvcTienda.Infraestructura.Repositories
 
             // Si el usuario existe y tiene un rol asignado, devolvemos el nombre del rol.
             return usuario?.Rol?.nombreRol;
-        }
-
-        public Producto GetProductoById(int id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IEnumerable<Producto> GetAllProductos()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void AddProducto(Producto producto)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void UpdateProducto(Producto producto)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void DeleteProducto(int id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void AddImagen(ImagenProducto imagen)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void DeleteImagen(int idImagen)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Usuario GetById(int id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public Usuario GetByEmail(string email)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IEnumerable<Usuario> GetAll()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Add(Usuario usuario)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Update(Usuario usuario)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public void Delete(int id)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

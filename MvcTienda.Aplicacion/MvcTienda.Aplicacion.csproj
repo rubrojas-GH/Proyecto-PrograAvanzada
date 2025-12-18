@@ -51,6 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Estadisticas\DashboardStatsDto.cs" />
+    <Compile Include="Estadisticas\IDashboardService.cs" />
+    <Compile Include="Estadisticas\DashboardService.cs" />
     <Compile Include="Ordenes\OrdenItemDto.cs" />
     <Compile Include="Ordenes\OrdenDto.cs" />
     <Compile Include="Categorias\ICategoriaService.cs" />

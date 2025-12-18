@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcTienda.Infraestructura",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcTienda.Web", "MvcTienda.Web\MvcTienda.Web.csproj", "{B30C3A91-B2E0-45B6-B557-A2EEBB6C351B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcTienda.API", "MvcTienda.API\MvcTienda.API.csproj", "{CAE95382-5EC7-4AFE-89D3-96396C49391B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{B30C3A91-B2E0-45B6-B557-A2EEBB6C351B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B30C3A91-B2E0-45B6-B557-A2EEBB6C351B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B30C3A91-B2E0-45B6-B557-A2EEBB6C351B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAE95382-5EC7-4AFE-89D3-96396C49391B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAE95382-5EC7-4AFE-89D3-96396C49391B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAE95382-5EC7-4AFE-89D3-96396C49391B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAE95382-5EC7-4AFE-89D3-96396C49391B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

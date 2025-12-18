@@ -29,7 +29,8 @@ namespace MvcTienda.Web.Controllers
         // GET: Categoria/Create
         public ActionResult Create()
         {
-            return View();
+            // Pasamos un modelo vacío para evitar el error de Model nulo
+            return View(new CategoriaDto());
         }
 
         // POST: Categoria/Create

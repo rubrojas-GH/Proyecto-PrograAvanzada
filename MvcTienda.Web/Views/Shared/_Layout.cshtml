@@ -18,8 +18,13 @@
             border-radius: 10px;
         }
 
-        .nav-link:hover {
+        .navbar .nav-link:not(.btn):hover {
             color: #0dcaf0 !important;
+        }
+
+        .navbar .btn-outline-info:hover {
+            background-color: #0dcaf0;
+            color: #000 !important;
         }
     </style>
 </head>
@@ -60,6 +65,13 @@
                                 <li><a class="dropdown-item" href="@Url.Action("Moderation", "Resena")"><i class="bi bi-chat-left-text me-2"></i>Reseñas</a></li>
                             </ul>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold text-info"
+                               href="@Url.Action("Index", "Dashboard")">
+                                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+                            </a>
+                        </li>
+
                     }
                 </ul>
                 @Html.Partial("_LoginPartial")
@@ -76,6 +88,8 @@
 
     @Scripts.Render("~/bundles/jquery")
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/Scripts/confirm-delete.js"></script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

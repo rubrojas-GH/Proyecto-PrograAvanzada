@@ -2,88 +2,129 @@
 @model UsuarioDto
 
 @{
-    ViewBag.Title = "Editar Usuario: " + Model.Nombre;
-
-    // Asumimos que la referencia al RolDto es correcta
-    IEnumerable<MvcTienda.Aplicacion.Roles.RolDto> rolesList = ViewBag.Roles as IEnumerable<MvcTienda.Aplicacion.Roles.RolDto>;
+    ViewBag.Title = "Editar Usuario";
+    var rolesList = ViewBag.Roles as IEnumerable<MvcTienda.Aplicacion.Roles.RolDto>;
 }
 
-<h2>@ViewBag.Title</h2>
-<p class="lead">Modificación de perfil y privilegios.</p>
-<hr />
+<div class="container mt-4 pb-5">
+    @* --- ENCABEZADO --- *@
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "User")">Administración</a></li>
+                <li class="breadcrumb-item active">Editar Usuario</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold text-dark">
+            <i class="bi bi-person-gear text-primary me-2"></i>Editar Perfil: <span class="text-muted">@Model.Nombre</span>
+        </h2>
+    </div>
 
-@using (Html.BeginForm("Edit", "User", FormMethod.Post, new { @class = "form-horizontal" }))
-{
-    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
 
-    <div class="form-horizontal">
-        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    @using (Html.BeginForm("Edit", "User", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(model => model.Id)
+                        @Html.HiddenFor(model => model.Email) @* El email no suele editarse por seguridad *@
+                        @Html.Hidden("ContrasenaActual", Model.ContrasenaActual)
+                        @Html.HiddenFor(model => model.UltimaConexion)
 
-        @* ID del Usuario: Correcto *@
-        @Html.HiddenFor(model => model.Id)
+                        <h5 class="fw-bold mb-4 border-bottom pb-2">Información General</h5>
 
-        @Html.Hidden("ContrasenaActual", Model.ContrasenaActual)
+                        @Html.ValidationSummary(true, "", new { @class = "alert alert-danger small rounded-3" })
 
-        @*Email (lo mantendremos oculto, o lo usaremos con el nombre correcto) *@
-        @Html.HiddenFor(model => model.Email)
+                        <div class="row g-3">
+                            @* Nombre Completo *@
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-bold small text-uppercase">Nombre Completo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                                    @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control border-start-0 ps-0", placeholder = "Ej. Juan Pérez" } })
+                                </div>
+                                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger small" })
+                            </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Nombre, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @Html.EditorFor(model => model.Nombre, new { htmlAttributes = new { @class = "form-control" } })
-                @Html.ValidationMessageFor(model => model.Nombre, "", new { @class = "text-danger" })
-            </div>
-        </div>
+                            @* Email (Solo lectura) *@
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-uppercase">Correo Electrónico</label>
+                                <input type="text" class="form-control bg-light" value="@Model.Email" readonly disabled />
+                                <div class="form-text">El correo no puede ser modificado.</div>
+                            </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <p class="form-control-static">@Model.Email</p> @* Muestra el email, no permite editar *@
-            </div>
-        </div>
+                            @* Rol de Usuario *@
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-uppercase">Rol de Usuario</label>
+                                @if (rolesList != null)
+                                {
+                                    @Html.DropDownListFor(
+                                        model => model.IdRol,
+                                        new SelectList(rolesList, "Id", "Nombre", Model.IdRol),
+                                        "Seleccione un Rol",
+                                        new { @class = "form-select shadow-sm" }
+                                    )
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning py-2 small">Error al cargar roles.</div>
+                                }
+                                @Html.ValidationMessageFor(model => model.IdRol, "", new { @class = "text-danger small" })
+                            </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.Estado, htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                <div class="checkbox">
-                    @Html.CheckBoxFor(model => model.Estado)
-                    @Html.ValidationMessageFor(model => model.Estado, "", new { @class = "text-danger" })
-                    <span class="help-block">Desmarcar para desactivar la cuenta del usuario.</span>
+                            @* Estado de la cuenta *@
+                            <div class="col-md-12 mb-4">
+                                <div class="form-check form-switch p-3 bg-light rounded-3 border">
+                                    @Html.CheckBoxFor(model => model.Estado, new { @class = "form-check-input ms-0 me-2", role = "switch" })
+                                    <label class="form-check-label fw-bold" for="Estado">Cuenta Activa</label>
+                                    <p class="text-muted small mb-0 ms-2">Si se desactiva, el usuario no podrá iniciar sesión en el sistema.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end mt-4">
+                            <a href="@Url.Action("Index", "User")" class="btn btn-light border rounded-pill px-4">Cancelar</a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">
+                                <i class="bi bi-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
 
-        <div class="form-group">
-            @Html.LabelFor(model => model.IdRol, "Rol de Usuario", htmlAttributes: new { @class = "control-label col-md-2" })
-            <div class="col-md-10">
-                @if (rolesList != null)
-                {
-                    @Html.DropDownListFor(
-                        model => model.IdRol, // CORRECCIÓN: model.IdRol
-                        // CORRECCIÓN 8: Asumimos RolDto tiene propiedades 'Id' y 'nombreRol'.
-                        new SelectList(rolesList, "Id", "nombreRol", Model.IdRol), // CORRECCIÓN: Model.IdRol
-                        "Seleccione un Rol",
-                        new { @class = "form-control" }
-                    )
-                }
-                else
-                {
-                    <p class="form-control-static text-danger">Error: Lista de Roles no cargada.</p>
-                }
-                @Html.ValidationMessageFor(model => model.IdRol, "", new { @class = "text-danger" })
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="Guardar Cambios" class="btn btn-success" />
-                @Html.ActionLink("Cancelar y Volver", "Index", null, new { @class = "btn btn-default" })
+        @* --- COLUMNA LATERAL (Resumen/Tips) --- *@
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 bg-primary text-white mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold"><i class="bi bi-info-circle me-2"></i>Gestión de Seguridad</h5>
+                    <p class="small opacity-75">Recuerde que cambiar el rol de un usuario afecta inmediatamente sus permisos en el catálogo y compras.</p>
+                    <hr class="opacity-25">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-clock-history fs-3"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="small opacity-75">Último acceso</div>
+                            <div class="fw-bold">@Model.UltimaConexion.ToString("dd MMM yyyy, HH:mm")</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-}
+</div>
 
-<hr />
-<p>
-    @Html.ActionLink("Volver a la Lista", "Index")
-</p>
+<style>
+    /* Pulir el diseño de los inputs */
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+</style>
